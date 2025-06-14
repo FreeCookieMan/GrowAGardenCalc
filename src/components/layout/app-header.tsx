@@ -10,7 +10,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
-export function AppHeader() {
+interface AppHeaderProps {
+  onOpenThemeCustomizer: () => void;
+}
+
+export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -29,7 +33,7 @@ export function AppHeader() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Settings</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={onOpenThemeCustomizer}>
               Customize Theme
             </DropdownMenuItem>
             <DropdownMenuItem>

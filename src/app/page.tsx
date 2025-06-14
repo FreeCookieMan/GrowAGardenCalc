@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Save } from "lucide-react";
+import { ThemeCustomizationModal } from "@/components/settings/theme-customization-modal";
 
 const environmentalMutationSchema = z.object({
   id: z.string(),
@@ -34,7 +35,7 @@ const calculationFormSchema = z.object({
     (val) => (String(val).trim() === "" ? NaN : Number(val)),
     z.number({invalid_type_error: "Mass (kg) must be a number."}).min(0, "Mass (kg) must be non-negative.")
   ),
-  baseMassKg: z.preprocess( // Added baseMassKg to schema
+  baseMassKg: z.preprocess(
     (val) => (String(val).trim() === "" ? NaN : Number(val)),
     z.number({invalid_type_error: "Base Mass (kg) must be a number."}).positive("Base Mass (kg) must be positive.")
   ),
@@ -58,6 +59,7 @@ const initialCalculationData: CalculationData = {
 
 export default function FruityMultiplierPage() {
   const { toast } = useToast();
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   const calculateTotalValue = (data: CalculationData): number => {
     if (!data) return 0;
@@ -66,11 +68,10 @@ export default function FruityMultiplierPage() {
 
     if (isNaN(basePrice) || basePrice < 0 ||
         isNaN(massKg) || massKg < 0 ||
-        isNaN(baseMassKg) || baseMassKg <= 0) { // Validate baseMassKg
+        isNaN(baseMassKg) || baseMassKg <= 0) {
       return 0;
     }
 
-    // Mass Factor calculation: (Mass / Base Mass)², but 1 if Mass < Base Mass
     const massTerm = (massKg >= baseMassKg && baseMassKg > 0) ? (massKg / baseMassKg) ** 2 : 1;
 
     let growthMultiplierValue = 1;
@@ -131,20 +132,19 @@ export default function FruityMultiplierPage() {
         realTimeTotalValue: newTotal,
       }));
     } else {
-       // Keep partial updates for better UX if form is partially invalid
       setCalculationState(prev => ({
         ...prev,
         fruitType: currentRawValues.fruitType,
         basePrice: currentRawValues.basePrice as any,
         massKg: currentRawValues.massKg as any,
-        baseMassKg: currentRawValues.baseMassKg as any, // Include baseMassKg
+        baseMassKg: currentRawValues.baseMassKg as any,
         growthMutationType: currentRawValues.growthMutationType,
         mutations: (currentRawValues.mutations || []).map((m: any) => ({
           id: m.id,
           type: m.type,
           valueMultiplier: m.valueMultiplier as any,
         })),
-        realTimeTotalValue: 0, // Set to 0 if form is invalid
+        realTimeTotalValue: 0,
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,7 +166,7 @@ export default function FruityMultiplierPage() {
         fruitType: currentData.fruitType,
         basePrice: Number(currentData.basePrice),
         massKg: Number(currentData.massKg),
-        baseMassKg: Number(currentData.baseMassKg), // Pass baseMassKg
+        baseMassKg: Number(currentData.baseMassKg),
         growthMutationType: currentData.growthMutationType,
         environmentalMutations: currentData.mutations.map(m => ({
           type: m.type,
@@ -207,7 +207,7 @@ export default function FruityMultiplierPage() {
       ...currentDataToSave,
       basePrice: Number(currentDataToSave.basePrice),
       massKg: Number(currentDataToSave.massKg),
-      baseMassKg: Number(currentDataToSave.baseMassKg), // Save baseMassKg
+      baseMassKg: Number(currentDataToSave.baseMassKg),
       growthMutationType: currentDataToSave.growthMutationType as GrowthMutationType,
       mutations: currentDataToSave.mutations.map(m => ({
         ...m,
@@ -250,7 +250,7 @@ export default function FruityMultiplierPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader onOpenThemeCustomizer={() => setIsThemeModalOpen(true)} />
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
         <Form {...formMethods}>
           <form onSubmit={handleSubmit(onFormSubmitForEstimate)} className="space-y-8">
@@ -296,6 +296,10 @@ export default function FruityMultiplierPage() {
       <footer className="text-center p-4 text-sm text-muted-foreground border-t">
         Fruity Multiplier &copy; {new Date().getFullYear()}
       </footer>
+      <ThemeCustomizationModal
+        isOpen={isThemeModalOpen}
+        onOpenChange={setIsThemeModalOpen}
+      />
     </div>
   );
 }
