@@ -37,7 +37,7 @@ export function FruitsCatalog() {
         <CardTitle className="font-headline text-xl">Fruits Catalog</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[300px] w-full pr-3">
+        <ScrollArea className="h-[300px] w-full">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {fruits.map((fruit) => (
               <div key={fruit.name} className="flex flex-col items-center p-3 border rounded-lg hover:shadow-md transition-shadow bg-card">
@@ -61,3 +61,4 @@ export function FruitsCatalog() {
     </Card>
   );
 }
+
