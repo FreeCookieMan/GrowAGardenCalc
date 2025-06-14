@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { SavedCalculation, CalculationData } from "@/types";
@@ -42,13 +43,13 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
                     <div>
                       <p className="font-semibold text-sm">{calc.fruitType}</p>
                       <p className="text-xs text-muted-foreground">
-                        Base: {calc.fruitBaseValue}, Amount: {calc.fruitAmount}
+                        Base: {calc.fruitBaseValue}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Mutations: {calc.mutations.length}
                       </p>
                        <p className="text-xs text-primary font-medium">
-                        Total: {calc.realTimeTotalValue.toLocaleString()}
+                        Total: {calc.realTimeTotalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                     <Button

@@ -13,7 +13,6 @@ import {
   Grape, 
   Flower2, 
   Sprout, 
-  // Coconut, // This icon does not exist
   Bean, 
   Sparkles, 
   Sun, 
@@ -35,22 +34,22 @@ interface ValueInputFormProps {
 
 const fruitTypes = [
   { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" /> },
-  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as a generic berry icon
-  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" /> }, // Using Grape as a generic berry icon
+  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" /> },
+  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" /> },
   { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" /> },
-  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" /> }, // Using Apple as a generic round fruit
-  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as a generic plant/veg
+  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" /> },
+  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" /> },
   { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" /> },
-  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
-  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" /> }, // Using Sprout for pumpkin
+  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" /> },
+  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" /> },
   { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" /> },
   { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" /> },
-  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" /> }, // Replaced non-existent Coconut with Sprout
+  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" /> }, 
   { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" /> },
-  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
-  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
+  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" /> },
+  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" /> },
   { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" /> },
-  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
+  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" /> },
   { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" /> },
   { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" /> },
   { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" /> },
@@ -70,14 +69,22 @@ export function ValueInputForm({
   onSubmitMarketValue,
   isEstimatingMarketValue,
 }: ValueInputFormProps) {
+  const addMutationField = () => {
+    append({ 
+      id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
+      factor: 0.1, // Default factor for new mutations
+      type: "Generic" 
+    });
+  };
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Item Details</CardTitle>
-        <CardDescription>Enter the base values for your fruit and its mutations.</CardDescription>
+        <CardDescription>Enter the base value for your fruit and its mutations.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start"> {/* Changed to md:grid-cols-2 */}
           
           <FormField
             control={control}
@@ -124,31 +131,13 @@ export function ValueInputForm({
             )}
           />
           
-          <FormField
-            control={control}
-            name="fruitAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fruit Amount</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 1"
-                    {...field}
-                    onChange={event => field.onChange(+event.target.value)}
-                    min="1"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Fruit Amount field removed */}
         </div>
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium font-headline">Mutations</h3>
           {fields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start p-4 border rounded-md shadow-sm bg-background/50 relative">
+            <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border rounded-md shadow-sm bg-background/50 relative"> {/* Changed to md:grid-cols-3 and items-end */}
               <FormField
                 control={control}
                 name={`mutations.${index}.type`}
@@ -176,17 +165,18 @@ export function ValueInputForm({
               
               <FormField
                 control={control}
-                name={`mutations.${index}.value`}
+                name={`mutations.${index}.factor`} // Changed from value to factor
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Mutation Value</FormLabel>
+                    <FormLabel>Factor (e.g. 0.5 for +50%)</FormLabel> {/* Updated Label */}
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="e.g., 50"
+                        placeholder="e.g., 0.5" // Updated placeholder
                         {...inputField}
-                        onChange={event => inputField.onChange(+event.target.value)}
+                        onChange={event => inputField.onChange(parseFloat(event.target.value) || 0)} // Ensure float, default to 0
                         min="0"
+                        step="0.01" // Allow decimal input
                       />
                     </FormControl>
                     <FormMessage />
@@ -194,31 +184,13 @@ export function ValueInputForm({
                 )}
               />
 
-              <FormField
-                control={control}
-                name={`mutations.${index}.amount`}
-                render={({ field: inputField }) => (
-                  <FormItem>
-                    <FormLabel>Mutation Amount</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 1"
-                        {...inputField}
-                        onChange={event => inputField.onChange(+event.target.value)}
-                        min="1"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Mutation Amount field removed */}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => remove(index)}
-                className="text-destructive hover:bg-destructive/10 self-center mt-4 md:mt-0 md:justify-self-end" 
+                className="text-destructive hover:bg-destructive/10" // Removed self-center, mt-4, md:mt-0, md:justify-self-end to align with items-end on grid
                 aria-label="Remove mutation"
               >
                 <XCircle className="w-5 h-5" />
@@ -228,7 +200,7 @@ export function ValueInputForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => append({ id: "new-mutation-" + Date.now() + Math.random().toString(36).substr(2,9) , value: 0, amount: 1, type: "Generic" })}
+            onClick={addMutationField} // Calls the local addMutationField
             className="w-full border-dashed hover:border-solid hover:bg-accent/20"
           >
             <PlusCircle className="w-4 h-4 mr-2" />

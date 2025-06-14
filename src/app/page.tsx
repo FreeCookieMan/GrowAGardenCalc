@@ -20,30 +20,29 @@ import { Save } from "lucide-react";
 
 const mutationSchema = z.object({
   id: z.string(),
-  value: z.number().min(0, "Must be non-negative"),
-  amount: z.number().min(1, "Must be at least 1"),
   type: z.string().min(1, "Type is required"),
+  factor: z.number().min(0, "Factor must be non-negative"), // Changed from value and amount
 });
 
 const calculationFormSchema = z.object({
   fruitBaseValue: z.number().min(0, "Must be non-negative"),
-  fruitAmount: z.number().min(1, "Must be at least 1"),
+  // fruitAmount: z.number().min(1, "Must be at least 1"), // Removed
   fruitType: z.string().min(1, "Type is required"),
   mutations: z.array(mutationSchema),
 });
 
 const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
-  fruitAmount: 1,
+  // fruitAmount: 1, // Removed
   fruitType: "Apple",
-  mutations: [{ id: "initial-mutation-static", value: 5, amount: 1, type: "Sparkle" }], // Use static ID
+  mutations: [{ id: "initial-mutation-static", type: "Sparkle", factor: 0.5 }], // Changed to factor
 };
 
 export default function FruityMultiplierPage() {
   const { toast } = useToast();
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
-    realTimeTotalValue: 0, // Will be calculated by useEffect
+    realTimeTotalValue: 0, 
     isLoadingAiEstimate: false,
     aiError: null,
   });
@@ -67,13 +66,13 @@ export default function FruityMultiplierPage() {
 
   useEffect(() => {
     const calculateRealTimeTotal = (data: CalculationData): number => {
-      let total = (data.fruitBaseValue || 0) * (data.fruitAmount || 0);
+      let totalMultiplierEffect = 1; // Start with 1 for the base value itself
       if (Array.isArray(data.mutations)) {
         data.mutations.forEach(mutation => {
-          total += (mutation.value || 0) * (mutation.amount || 0);
+          totalMultiplierEffect += (mutation.factor || 0);
         });
       }
-      return total;
+      return (data.fruitBaseValue || 0) * totalMultiplierEffect;
     };
     
     let currentWatchedValues: Partial<CalculationData> = {};
@@ -85,14 +84,11 @@ export default function FruityMultiplierPage() {
         return;
     }
 
-    if (currentWatchedValues.fruitBaseValue !== undefined && 
-        currentWatchedValues.fruitAmount !== undefined
-    ) {
+    if (currentWatchedValues.fruitBaseValue !== undefined) {
         const dataToValidate: CalculationData = {
             fruitBaseValue: currentWatchedValues.fruitBaseValue ?? 0,
-            fruitAmount: currentWatchedValues.fruitAmount ?? 0,
             fruitType: currentWatchedValues.fruitType ?? '',
-            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations : [],
+            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({...m, factor: m.factor ?? 0})) : [],
         };
         const validationResult = calculationFormSchema.safeParse(dataToValidate);
 
@@ -104,7 +100,6 @@ export default function FruityMultiplierPage() {
                 if (
                     prev.realTimeTotalValue === newTotal &&
                     prev.fruitBaseValue === validData.fruitBaseValue &&
-                    prev.fruitAmount === validData.fruitAmount &&
                     prev.fruitType === validData.fruitType &&
                     JSON.stringify(prev.mutations || []) === JSON.stringify(validData.mutations || [])
                 ) {
@@ -114,7 +109,6 @@ export default function FruityMultiplierPage() {
                     ...prev, 
                     realTimeTotalValue: newTotal,
                     fruitBaseValue: validData.fruitBaseValue,
-                    fruitAmount: validData.fruitAmount,
                     fruitType: validData.fruitType,
                     mutations: validData.mutations,
                 };
@@ -151,11 +145,8 @@ export default function FruityMultiplierPage() {
     try {
       const input: EstimateMarketValueInput = {
         fruitBaseValue: currentData.fruitBaseValue,
-        fruitAmount: currentData.fruitAmount,
         fruitType: currentData.fruitType,
-        mutationValues: currentData.mutations.map(m => m.value),
-        mutationAmounts: currentData.mutations.map(m => m.amount),
-        mutationTypes: currentData.mutations.map(m => m.type),
+        mutations: currentData.mutations.map(m => ({ type: m.type, factor: m.factor })),
       };
       const result = await estimateMarketValue(input);
       setCalculationState(prev => ({ ...prev, aiEstimate: result, isLoadingAiEstimate: false }));
@@ -227,8 +218,7 @@ export default function FruityMultiplierPage() {
   const addMutation = () => {
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      value: 0, 
-      amount: 1, 
+      factor: 0.1, // Default factor
       type: "Generic" 
     });
   };
