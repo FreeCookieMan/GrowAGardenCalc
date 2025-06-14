@@ -48,7 +48,9 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
                       <p className="text-xs text-muted-foreground">
                         Mass: {calc.massKg}kg
                       </p>
-                      {/* Removed Base Mass display */}
+                      <p className="text-xs text-muted-foreground">
+                        Base Mass: {calc.baseMassKg}kg
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Growth: {calc.growthMutationType}
                       </p>
@@ -82,4 +84,3 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
     </Card>
   );
 }
-

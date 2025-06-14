@@ -21,7 +21,7 @@ import { Save } from "lucide-react";
 const environmentalMutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.number(), // Value is set programmatically, direct number expected
+  valueMultiplier: z.number(),
 });
 
 const calculationFormSchema = z.object({
@@ -34,19 +34,24 @@ const calculationFormSchema = z.object({
     (val) => (String(val).trim() === "" ? NaN : Number(val)),
     z.number({invalid_type_error: "Mass (kg) must be a number."}).min(0, "Mass (kg) must be non-negative.")
   ),
+  baseMassKg: z.preprocess( // Added baseMassKg to schema
+    (val) => (String(val).trim() === "" ? NaN : Number(val)),
+    z.number({invalid_type_error: "Base Mass (kg) must be a number."}).positive("Base Mass (kg) must be positive.")
+  ),
   growthMutationType: z.enum(["none", "gold", "rainbow"], {
     errorMap: () => ({ message: "Growth Mutation type is required." }),
   }),
   mutations: z.array(environmentalMutationSchema),
 });
 
-// Default fruit is Apple, its basePrice will be updated by fruitTypes list later
 const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static", type: "Wet", valueMultiplier: 2.0 };
 
+// Default fruit is Apple
 const initialCalculationData: CalculationData = {
-  fruitType: "Apple", // Will be set from fruitTypes in ValueInputForm
-  basePrice: 248, // Updated basePrice for Apple
+  fruitType: "Apple",
+  basePrice: 248, // Base price for Apple
   massKg: 1,
+  baseMassKg: 0.15, // Base mass for Apple
   growthMutationType: "none",
   mutations: [initialEnvironmentalMutation],
 };
@@ -57,15 +62,17 @@ export default function FruityMultiplierPage() {
   const calculateTotalValue = (data: CalculationData): number => {
     if (!data) return 0;
 
-    const { basePrice, massKg, growthMutationType, mutations: environmentalMutations } = data;
+    const { basePrice, massKg, baseMassKg, growthMutationType, mutations: environmentalMutations } = data;
 
     if (isNaN(basePrice) || basePrice < 0 ||
-        isNaN(massKg) /* massKg is still validated but not used in calculation as per current rules */ ) {
+        isNaN(massKg) || massKg < 0 ||
+        isNaN(baseMassKg) || baseMassKg <= 0) { // Validate baseMassKg
       return 0;
     }
 
-    const massTerm = 1; // Mass (kg) explicitly does not affect the calculation directly here.
-    
+    // Mass Factor calculation: (Mass / Base Mass)², but 1 if Mass < Base Mass
+    const massTerm = (massKg >= baseMassKg && baseMassKg > 0) ? (massKg / baseMassKg) ** 2 : 1;
+
     let growthMultiplierValue = 1;
     if (growthMutationType === "gold") growthMultiplierValue = 20;
     if (growthMutationType === "rainbow") growthMultiplierValue = 50;
@@ -80,12 +87,12 @@ export default function FruityMultiplierPage() {
     }
     const numEnvironmentalMutations = Array.isArray(environmentalMutations) ? environmentalMutations.length : 0;
     let environmentalFactor = 1 + sumEnvironmentalBonuses - numEnvironmentalMutations;
-    environmentalFactor = Math.max(0, environmentalFactor); 
+    environmentalFactor = Math.max(0, environmentalFactor);
 
     const totalValue = massTerm * basePrice * growthMultiplierValue * environmentalFactor;
     return isNaN(totalValue) ? 0 : totalValue;
   };
-  
+
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
     realTimeTotalValue: calculateTotalValue(initialCalculationData),
@@ -97,7 +104,7 @@ export default function FruityMultiplierPage() {
   const formMethods = useForm<CalculationData>({
     resolver: zodResolver(calculationFormSchema),
     defaultValues: initialCalculationData,
-    mode: "onChange", 
+    mode: "onChange",
   });
 
   const { control, handleSubmit, watch, reset, formState, getValues } = formMethods;
@@ -120,26 +127,28 @@ export default function FruityMultiplierPage() {
 
       setCalculationState(prev => ({
         ...prev,
-        ...validData, 
+        ...validData,
         realTimeTotalValue: newTotal,
       }));
     } else {
+       // Keep partial updates for better UX if form is partially invalid
       setCalculationState(prev => ({
         ...prev,
         fruitType: currentRawValues.fruitType,
-        basePrice: currentRawValues.basePrice as any, 
+        basePrice: currentRawValues.basePrice as any,
         massKg: currentRawValues.massKg as any,
+        baseMassKg: currentRawValues.baseMassKg as any, // Include baseMassKg
         growthMutationType: currentRawValues.growthMutationType,
-        mutations: (currentRawValues.mutations || []).map((m: any) => ({ 
+        mutations: (currentRawValues.mutations || []).map((m: any) => ({
           id: m.id,
           type: m.type,
-          valueMultiplier: m.valueMultiplier as any, 
+          valueMultiplier: m.valueMultiplier as any,
         })),
-        realTimeTotalValue: 0, 
+        realTimeTotalValue: 0, // Set to 0 if form is invalid
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); 
+  }, [watchedFormValuesString]);
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -149,7 +158,7 @@ export default function FruityMultiplierPage() {
   }, []);
 
   const handleEstimateMarketValue = async () => {
-    const currentData = getValues(); 
+    const currentData = getValues();
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
@@ -157,9 +166,10 @@ export default function FruityMultiplierPage() {
         fruitType: currentData.fruitType,
         basePrice: Number(currentData.basePrice),
         massKg: Number(currentData.massKg),
+        baseMassKg: Number(currentData.baseMassKg), // Pass baseMassKg
         growthMutationType: currentData.growthMutationType,
-        environmentalMutations: currentData.mutations.map(m => ({ 
-          type: m.type, 
+        environmentalMutations: currentData.mutations.map(m => ({
+          type: m.type,
           valueMultiplier: Number(m.valueMultiplier)
         })),
       };
@@ -188,25 +198,26 @@ export default function FruityMultiplierPage() {
         description: "Please ensure all inputs are valid before saving.",
         variant: "destructive",
       });
-      handleSubmit(() => {})() 
+      handleSubmit(() => {})()
       return;
     }
-    
-    const currentDataToSave = getValues(); 
+
+    const currentDataToSave = getValues();
     const newSavedCalculation: SavedCalculation = {
       ...currentDataToSave,
       basePrice: Number(currentDataToSave.basePrice),
       massKg: Number(currentDataToSave.massKg),
+      baseMassKg: Number(currentDataToSave.baseMassKg), // Save baseMassKg
       growthMutationType: currentDataToSave.growthMutationType as GrowthMutationType,
       mutations: currentDataToSave.mutations.map(m => ({
         ...m,
         valueMultiplier: Number(m.valueMultiplier)
       })),
-      id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
+      id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9),
       timestamp: Date.now(),
-      realTimeTotalValue: calculateTotalValue(currentDataToSave), 
+      realTimeTotalValue: calculateTotalValue(currentDataToSave),
     };
-    const updatedSaved = [newSavedCalculation, ...savedCalculations].slice(0, 10); 
+    const updatedSaved = [newSavedCalculation, ...savedCalculations].slice(0, 10);
     setSavedCalculations(updatedSaved);
     localStorage.setItem("fruityMultiplierSaved", JSON.stringify(updatedSaved));
     toast({
@@ -214,12 +225,12 @@ export default function FruityMultiplierPage() {
       description: `${currentDataToSave.fruitType} details have been saved.`,
     });
   };
-  
+
   const loadCalculation = (calculationToLoad: CalculationData) => {
-    reset(calculationToLoad); 
+    reset(calculationToLoad);
     setCalculationState(prev => ({
       ...prev,
-      aiEstimate: undefined, 
+      aiEstimate: undefined,
       aiError: null,
       realTimeTotalValue: calculateTotalValue(calculationToLoad)
     }));
@@ -248,7 +259,7 @@ export default function FruityMultiplierPage() {
                 <ValueInputForm
                   control={control}
                   fieldArray={{ fields, append, remove }}
-                  onSubmitMarketValue={handleEstimateMarketValue} 
+                  onSubmitMarketValue={handleEstimateMarketValue}
                   isEstimatingMarketValue={calculationState.isLoadingAiEstimate}
                   formState={formState}
                 />
@@ -259,20 +270,20 @@ export default function FruityMultiplierPage() {
                 />
               </section>
 
-              <aside className="space-y-8 lg:sticky lg:top-20"> 
+              <aside className="space-y-8 lg:sticky lg:top-20">
                 <RealTimeCalculationDisplay totalValue={calculationState.realTimeTotalValue} />
-                 <Button 
+                 <Button
                   type="button"
                   onClick={saveCurrentCalculation}
                   className="w-full bg-accent hover:bg-accent/80 text-accent-foreground"
                   size="lg"
-                  disabled={!formState.isValid || calculationState.isLoadingAiEstimate} 
+                  disabled={!formState.isValid || calculationState.isLoadingAiEstimate}
                 >
                   <Save className="w-5 h-5 mr-2" />
                   Save Current Calculation
                 </Button>
                 <FruitsCatalog />
-                <SavedResults 
+                <SavedResults
                   savedCalculations={savedCalculations}
                   onLoadCalculation={loadCalculation}
                   onClearAll={clearSavedCalculations}
@@ -288,4 +299,3 @@ export default function FruityMultiplierPage() {
     </div>
   );
 }
-

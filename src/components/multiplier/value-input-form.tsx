@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Apple, Carrot, Leaf, Grape, Flower2, Sprout, Bean, 
-  Sparkles, PlusCircle, XCircle, Calculator, 
-  Award, Zap 
+import {
+  Apple, Carrot, Leaf, Grape, Flower2, Sprout, Bean,
+  Sparkles, PlusCircle, XCircle, Calculator,
+  Award, Zap
 } from "lucide-react";
 import type { CalculationData, GrowthMutationType } from "@/types";
 import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/components/ui/form";
@@ -18,34 +18,34 @@ import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/comp
 interface ValueInputFormProps {
   control: Control<CalculationData>;
   formState: FormState<CalculationData>;
-  fieldArray: UseFieldArrayReturn<CalculationData, "mutations", "id">; 
+  fieldArray: UseFieldArrayReturn<CalculationData, "mutations", "id">;
   onSubmitMarketValue: () => void;
   isEstimatingMarketValue: boolean;
 }
 
 const fruitTypes = [
-  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 18 },
-  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 14 },
-  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 18 },
-  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 767 },
-  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 27 },
-  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 36 },
-  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 903 },
-  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 2708 },
-  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3700 },
-  { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 248 },
-  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3610 },
-  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 361 }, 
-  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3068 },
-  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 4287 },
-  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 5866 },
-  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 7085 },
-  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 7220 },
-  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10830 },
-  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 25270 },
-  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 50000 },
-  { value: "Mushroom", label: "Mushroom", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 136278 },
-  { value: "Sugar Apple", label: "Sugar Apple", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 0 },
+  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1 },
+  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 14, baseMassKg: 0.02 },
+  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1 },
+  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 767, baseMassKg: 0.05 },
+  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 27, baseMassKg: 0.15 },
+  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 36, baseMassKg: 0.3 },
+  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 903, baseMassKg: 0.05 },
+  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 2708, baseMassKg: 3.0 },
+  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3700, baseMassKg: 2.0 },
+  { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 248, baseMassKg: 0.15 },
+  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3610, baseMassKg: 0.5 },
+  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 361, baseMassKg: 0.8 },
+  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3068, baseMassKg: 0.5 },
+  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 4287, baseMassKg: 0.3 },
+  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 5866, baseMassKg: 0.2 },
+  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 7085, baseMassKg: 0.3 },
+  { value: "Mushroom", label: "Mushroom", icon: <Sprout className="w-4 h-4 mr-2"/>, basePrice: 136278, baseMassKg: 0.05},
+  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 7220, baseMassKg: 0.1 },
+  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10830, baseMassKg: 5.28 },
+  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 25270, baseMassKg: 1.0 },
+  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 50000, baseMassKg: 0.05 },
+  { value: "Sugar Apple", label: "Sugar Apple", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 0, baseMassKg: 0.2 },
 ];
 
 const growthMutationOptions: { value: GrowthMutationType; label: string; icon: JSX.Element, multiplier: number }[] = [
@@ -85,10 +85,10 @@ export function ValueInputForm({
 
   const addEnvironmentalMutationField = () => {
     const defaultMutation = environmentalMutationTypes[0] || { value: "Wet", defaultMultiplier: 2.0 };
-    append({ 
-      id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      type: defaultMutation.value, 
-      valueMultiplier: defaultMutation.defaultMultiplier 
+    append({
+      id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9),
+      type: defaultMutation.value,
+      valueMultiplier: defaultMutation.defaultMultiplier
     });
   };
 
@@ -106,14 +106,15 @@ export function ValueInputForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fruit Type</FormLabel>
-                <Select 
+                <Select
                   onValueChange={(newType) => {
                     field.onChange(newType);
                     const selectedFruit = fruitTypes.find(f => f.value === newType);
                     if (selectedFruit) {
                       setValue('basePrice', selectedFruit.basePrice);
+                      setValue('baseMassKg', selectedFruit.baseMassKg); // Set baseMassKg
                     }
-                  }} 
+                  }}
                   defaultValue={String(field.value)}
                 >
                   <FormControl>
@@ -139,14 +140,14 @@ export function ValueInputForm({
             name="basePrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Base Price (Fixed)</FormLabel>
+                <FormLabel>Base Price (Fixed per Fruit)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     placeholder="e.g., 10"
                     {...field}
-                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)} 
-                    disabled 
+                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)}
+                    disabled
                   />
                 </FormControl>
                 <FormMessage />
@@ -175,12 +176,15 @@ export function ValueInputForm({
               </FormItem>
             )}
           />
+           {/* BaseMassKg is now derived, so no direct input field for it.
+               It's included in CalculationData via setValue when fruitType changes. */}
+
 
           <FormField
             control={control}
             name="growthMutationType"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem className="md:col-span-2"> {/* Spans two columns if fewer items or for better layout */}
                 <FormLabel>Growth Mutation</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
@@ -212,14 +216,14 @@ export function ValueInputForm({
                 render={({ field: selectField }) => (
                   <FormItem>
                     <FormLabel>Env. Mutation Type</FormLabel>
-                     <Select 
+                     <Select
                         onValueChange={(newType) => {
                           selectField.onChange(newType);
                           const selectedMutation = environmentalMutationTypes.find(m => m.value === newType);
                           if (selectedMutation) {
                             setValue(`mutations.${index}.valueMultiplier`, selectedMutation.defaultMultiplier);
                           }
-                        }} 
+                        }}
                         defaultValue={String(selectField.value)}
                       >
                       <FormControl>
@@ -239,7 +243,7 @@ export function ValueInputForm({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name={`mutations.${index}.valueMultiplier`}
@@ -249,10 +253,10 @@ export function ValueInputForm({
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="e.g., 1.5" 
+                        placeholder="e.g., 1.5"
                         {...inputField}
-                        value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)} 
-                        disabled 
+                        value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)}
+                        disabled
                       />
                     </FormControl>
                     <FormMessage />
@@ -265,7 +269,7 @@ export function ValueInputForm({
                 variant="ghost"
                 size="icon"
                 onClick={() => remove(index)}
-                className="text-destructive hover:bg-destructive/10 md:col-start-3 md:justify-self-end" 
+                className="text-destructive hover:bg-destructive/10 md:col-start-3 md:justify-self-end"
                 aria-label="Remove environmental mutation"
               >
                 <XCircle className="w-5 h-5" />
@@ -275,7 +279,7 @@ export function ValueInputForm({
           <Button
             type="button"
             variant="outline"
-            onClick={addEnvironmentalMutationField} 
+            onClick={addEnvironmentalMutationField}
             className="w-full border-dashed hover:border-solid hover:bg-accent/20"
           >
             <PlusCircle className="w-4 h-4 mr-2" />
@@ -283,10 +287,10 @@ export function ValueInputForm({
           </Button>
         </div>
 
-        <Button 
-          type="button" 
-          onClick={onSubmitMarketValue} 
-          disabled={isEstimatingMarketValue || !formState.isValid} 
+        <Button
+          type="button"
+          onClick={onSubmitMarketValue}
+          disabled={isEstimatingMarketValue || !formState.isValid}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           size="lg"
         >
@@ -297,4 +301,3 @@ export function ValueInputForm({
     </Card>
   );
 }
-

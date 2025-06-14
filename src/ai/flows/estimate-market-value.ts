@@ -11,7 +11,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { GrowthMutationType } from '@/types';
 
 const EnvironmentalMutationInputSchema = z.object({
   type: z.string().describe('The type of the environmental mutation (e.g., Wet, Chilled).'),
@@ -21,7 +20,8 @@ const EnvironmentalMutationInputSchema = z.object({
 const EstimateMarketValueInputSchema = z.object({
   fruitType: z.string().describe('The type of fruit (e.g., Apple, Tomato).'),
   basePrice: z.coerce.number().min(0, "Base Price must be non-negative.").describe('The constant base price unique to this crop type.'),
-  massKg: z.coerce.number().min(0, "Mass (kg) must be non-negative.").describe('The mass of the fruit in kilograms. This value is provided for market consideration by the AI but does not directly factor into the raw formula price calculation as a multiplier.'),
+  massKg: z.coerce.number().min(0, "Mass (kg) must be non-negative.").describe('The mass of the fruit in kilograms.'),
+  baseMassKg: z.coerce.number().positive("Base Mass (kg) must be positive.").describe('The constant base mass for this crop type in kilograms. Used to calculate the Mass Factor.'),
   growthMutationType: z.enum(["none", "gold", "rainbow"]).describe('The type of growth mutation applied: "none" (x1), "gold" (x20), or "rainbow" (x50).'),
   environmentalMutations: z.array(EnvironmentalMutationInputSchema).describe('An array of applied environmental mutations. Each has a type and its own valueMultiplier.'),
 });
@@ -50,7 +50,11 @@ Total Price = (Mass Factor) * Base Price * (Growth Mutation Multiplier) * (Envir
 
 Where each component is calculated as follows:
 
-1.  **Mass Factor**: For the purpose of this specific formula, the Mass Factor is always 1. The actual 'Mass (kg)' of the fruit does not directly multiply the price in this formula. However, you should still consider the provided 'Mass (kg)' value when assessing overall market dynamics, rarity for a given size, or other qualitative aspects for your final 'estimatedMarketValue' and 'reasoning'.
+1.  **Mass Factor**:
+    *   This is calculated based on 'Mass (kg)' and 'Base Mass (kg)'.
+    *   If 'Mass (kg)' is less than 'Base Mass (kg)', or if 'Base Mass (kg)' is zero or negative (which shouldn't happen with valid inputs), the Mass Factor = 1.
+    *   Otherwise, Mass Factor = ('Mass (kg)' / 'Base Mass (kg)')².
+    *   So, Mass Factor = if (massKg >= baseMassKg AND baseMassKg > 0) then (massKg / baseMassKg)^2 else 1.
 
 2.  **Base Price**: This is the given 'basePrice' for the fruit type.
 
@@ -66,12 +70,13 @@ Where each component is calculated as follows:
     *   **Number of Environmental Mutations** is the count of items in the 'environmentalMutations' array.
     *   The final Environmental Factor must not be negative; if the calculation (1 + Sum Bonuses - Count) results in a negative number, use 0 instead. So, Environmental Factor = max(0, 1 + Sum_Bonuses - Count).
 
-Based on these inputs and the formula, first calculate the raw price. Then, provide an 'estimatedMarketValue' that also considers market dynamics, rarity of the fruit type and mutations, and overall desirability, including any relevant considerations from the 'Mass (kg)'. Your 'reasoning' should explain both the formula-based calculation and any market adjustments you apply.
+Based on these inputs and the formula, first calculate the raw price. Then, provide an 'estimatedMarketValue' that also considers market dynamics, rarity of the fruit type and mutations, and overall desirability, including any relevant considerations from the 'Mass (kg)' and its relation to 'Base Mass (kg)'. Your 'reasoning' should explain both the formula-based calculation and any market adjustments you apply.
 
 Input Details:
 - Fruit Type: {{{fruitType}}}
 - Base Price: {{{basePrice}}}
-- Mass (kg): {{{massKg}}} (Consider for market dynamics, but Mass Factor for formula is 1)
+- Mass (kg): {{{massKg}}}
+- Base Mass (kg): {{{baseMassKg}}}
 - Growth Mutation Type: {{{growthMutationType}}}
 - Environmental Mutations:
   {{#if environmentalMutations}}
@@ -97,4 +102,3 @@ const estimateMarketValueFlow = ai.defineFlow(
     return output!;
   }
 );
-
