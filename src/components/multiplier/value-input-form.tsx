@@ -1,15 +1,29 @@
 
 "use client";
 
-import type { Control, UseFieldArrayReturn, FormState } from "react-hook-form";
+import type { Control, FormState, UseFieldArrayReturn } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label"; // This is ShadCN's generic Label
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Apple, Banana, Cherry, Sparkles, Sun, Gem, PlusCircle, XCircle, Calculator } from "lucide-react";
+import { 
+  Apple, 
+  Carrot, 
+  Leaf, 
+  Grape, 
+  Flower2, 
+  Sprout, 
+  // Coconut, // This icon does not exist
+  Bean, 
+  Sparkles, 
+  Sun, 
+  Gem, 
+  PlusCircle, 
+  XCircle, 
+  Calculator 
+} from "lucide-react";
 import type { CalculationData } from "@/types";
-import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/components/ui/form"; // Added FormLabel
+import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/components/ui/form";
 
 interface ValueInputFormProps {
   control: Control<CalculationData>;
@@ -20,10 +34,26 @@ interface ValueInputFormProps {
 }
 
 const fruitTypes = [
+  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" /> },
+  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as a generic berry icon
+  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" /> }, // Using Grape as a generic berry icon
+  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" /> },
+  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" /> }, // Using Apple as a generic round fruit
+  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as a generic plant/veg
+  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" /> },
+  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
+  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" /> }, // Using Sprout for pumpkin
   { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" /> },
-  { value: "Banana", label: "Banana", icon: <Banana className="w-4 h-4 mr-2" /> },
-  { value: "Cherry", label: "Cherry", icon: <Cherry className="w-4 h-4 mr-2" /> },
-  { value: "Generic", label: "Generic Fruit", icon: <Apple className="w-4 h-4 mr-2 text-muted-foreground" />},
+  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" /> },
+  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" /> }, // Replaced non-existent Coconut with Sprout
+  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" /> },
+  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
+  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
+  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" /> },
+  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" /> }, // Using Leaf as generic
+  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" /> },
+  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" /> },
+  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" /> },
 ];
 
 const mutationTypes = [
@@ -40,8 +70,6 @@ export function ValueInputForm({
   onSubmitMarketValue,
   isEstimatingMarketValue,
 }: ValueInputFormProps) {
-  const { errors } = formState; // errors for manual class application if needed, FormMessage handles display
-
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -56,10 +84,10 @@ export function ValueInputForm({
             name="fruitType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fruit Type</FormLabel> {/* Changed to FormLabel */}
+                <FormLabel>Fruit Type</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger id="fruitType"> {/* id can be removed if FormLabel is used as it handles htmlFor */}
+                    <SelectTrigger id="fruitType">
                       <SelectValue placeholder="Select fruit type" />
                     </SelectTrigger>
                   </FormControl>
@@ -81,7 +109,7 @@ export function ValueInputForm({
             name="fruitBaseValue"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fruit Base Value</FormLabel> {/* Changed to FormLabel */}
+                <FormLabel>Fruit Base Value</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -89,7 +117,6 @@ export function ValueInputForm({
                     {...field}
                     onChange={event => field.onChange(+event.target.value)}
                     min="0"
-                    // className={errors.fruitBaseValue ? "border-destructive" : ""} // FormField handles error styling
                   />
                 </FormControl>
                 <FormMessage />
@@ -102,7 +129,7 @@ export function ValueInputForm({
             name="fruitAmount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fruit Amount</FormLabel> {/* Changed to FormLabel */}
+                <FormLabel>Fruit Amount</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -110,7 +137,6 @@ export function ValueInputForm({
                     {...field}
                     onChange={event => field.onChange(+event.target.value)}
                     min="1"
-                    // className={errors.fruitAmount ? "border-destructive" : ""} // FormField handles error styling
                   />
                 </FormControl>
                 <FormMessage />
@@ -128,10 +154,10 @@ export function ValueInputForm({
                 name={`mutations.${index}.type`}
                 render={({ field: selectField }) => (
                   <FormItem>
-                    <FormLabel>Mutation Type</FormLabel> {/* Changed to FormLabel */}
+                    <FormLabel>Mutation Type</FormLabel>
                      <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
                       <FormControl>
-                        <SelectTrigger> {/* id can be removed */}
+                        <SelectTrigger>
                           <SelectValue placeholder="Select mutation type" />
                         </SelectTrigger>
                       </FormControl>
@@ -153,7 +179,7 @@ export function ValueInputForm({
                 name={`mutations.${index}.value`}
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Mutation Value</FormLabel> {/* Changed to FormLabel */}
+                    <FormLabel>Mutation Value</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -161,7 +187,6 @@ export function ValueInputForm({
                         {...inputField}
                         onChange={event => inputField.onChange(+event.target.value)}
                         min="0"
-                        // className={errors.mutations?.[index]?.value ? "border-destructive" : ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -174,7 +199,7 @@ export function ValueInputForm({
                 name={`mutations.${index}.amount`}
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Mutation Amount</FormLabel> {/* Changed to FormLabel */}
+                    <FormLabel>Mutation Amount</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -182,7 +207,6 @@ export function ValueInputForm({
                         {...inputField}
                         onChange={event => inputField.onChange(+event.target.value)}
                         min="1"
-                        // className={errors.mutations?.[index]?.amount ? "border-destructive" : ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -213,7 +237,7 @@ export function ValueInputForm({
         </div>
 
         <Button 
-          type="button" // Changed from submit, onSubmitMarketValue is used
+          type="button" 
           onClick={onSubmitMarketValue} 
           disabled={isEstimatingMarketValue || !formState.isValid} 
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -226,4 +250,3 @@ export function ValueInputForm({
     </Card>
   );
 }
-
