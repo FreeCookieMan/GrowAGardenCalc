@@ -15,6 +15,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import { applyCustomThemeColors, clearCustomThemeColors } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface ThemeCustomizationModalProps {
   isOpen: boolean;
@@ -23,18 +26,19 @@ interface ThemeCustomizationModalProps {
 
 export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomizationModalProps) {
   const [selectedThemeOption, setSelectedThemeOption] = useState<'light' | 'dark' | 'custom'>('light');
-  const [customColor, setCustomColor] = useState<string>("#ADDF6F"); // Default primary
+  const [customColor, setCustomColor] = useState<string>("#ADDF6F"); // Default initial custom color
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    if (isOpen && typeof window !== 'undefined') {
+        const currentTheme = localStorage.getItem('themePreference') as 'light' | 'dark' | 'custom' || 'light';
         setSelectedThemeOption(currentTheme);
         const storedCustomColor = localStorage.getItem('customPrimaryColor');
         if (storedCustomColor) {
             setCustomColor(storedCustomColor);
         }
     }
-  }, []);
+  }, [isOpen]);
 
   const handleThemeOptionChange = (newThemeValue: string) => {
     const newTheme = newThemeValue as 'light' | 'dark' | 'custom';
@@ -43,28 +47,61 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
     if (typeof window !== 'undefined') {
         if (newTheme === 'light') {
             document.documentElement.classList.remove('dark');
+            clearCustomThemeColors();
             localStorage.setItem('themePreference', 'light');
+            localStorage.removeItem('customPrimaryColor'); // Clear custom color if switching to standard theme
         } else if (newTheme === 'dark') {
             document.documentElement.classList.add('dark');
+            clearCustomThemeColors();
             localStorage.setItem('themePreference', 'dark');
+            localStorage.removeItem('customPrimaryColor'); // Clear custom color if switching to standard theme
+        } else if (newTheme === 'custom') {
+            // Apply current customColor immediately if switching to custom
+            // or wait for user to press "Apply Color"
+            localStorage.setItem('themePreference', 'custom');
+            // Optionally apply directly: applyCustomThemeColors(customColor);
+            // For now, let's require explicit "Apply Color" click for custom.
+            // If a custom color was previously set, ThemeInitializer would have applied it.
+            // If switching to 'custom' and a customColor is already in state (e.g. from previous save),
+            // we might want to re-apply it.
+            const storedCustom = localStorage.getItem('customPrimaryColor');
+            if(storedCustom) {
+                 applyCustomThemeColors(storedCustom);
+            } else {
+                 applyCustomThemeColors(customColor); // Apply default custom if none stored
+            }
         }
     }
   };
 
   const handleApplyCustomColor = () => {
     if (selectedThemeOption === 'custom' && typeof window !== 'undefined') {
-      // This part is still experimental as full theme update is complex.
-      // For now, we'll just save the color preference.
-      localStorage.setItem('customPrimaryColor', customColor);
-      // To truly apply, you'd update CSS variables like:
-      // document.documentElement.style.setProperty('--primary', customColor);
-      // And convert HEX to HSL for other variables.
-      alert("Custom color preference saved. Full theme application is experimental and requires CSS variable updates.");
+      try {
+        applyCustomThemeColors(customColor);
+        localStorage.setItem('customPrimaryColor', customColor);
+        localStorage.setItem('themePreference', 'custom'); // Ensure preference is set to custom
+         toast({
+          title: "Custom Theme Applied",
+          description: "Your custom primary color has been applied.",
+        });
+      } catch (error) {
+         console.error("Error applying custom theme:", error);
+         toast({
+          title: "Error",
+          description: "Could not apply custom theme color.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleColorInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomColor(e.target.value);
+    // Optionally apply live if 'custom' is selected, or wait for "Apply" button
+    // if (selectedThemeOption === 'custom') {
+    //   applyCustomThemeColors(e.target.value);
+    //   localStorage.setItem('customPrimaryColor', e.target.value);
+    // }
   };
 
   return (
@@ -99,9 +136,9 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
             <div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="custom" id="theme-custom" />
-                <Label htmlFor="theme-custom">Custom Primary Color</Label>
+                <Label htmlFor="theme-custom">Custom Colors</Label>
               </div>
-               <p className="text-xs text-muted-foreground pl-6 pt-1">Choose your own primary color (experimental).</p>
+               <p className="text-xs text-muted-foreground pl-6 pt-1">Set your own primary, accent, and background colors.</p>
             </div>
           </RadioGroup>
 
@@ -126,10 +163,7 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
                   aria-label="Color picker"
                 />
               </div>
-              <Button onClick={handleApplyCustomColor} variant="outline" size="sm" className="mt-2">Apply Color</Button>
-              <p className="text-xs text-muted-foreground pt-1">
-                Note: Full theme integration requires updating HSL variables in CSS. This saves your preference.
-              </p>
+              <Button onClick={handleApplyCustomColor} variant="outline" size="sm" className="mt-2">Apply Custom Colors</Button>
             </div>
           )}
         </div>
