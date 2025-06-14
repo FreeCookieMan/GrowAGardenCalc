@@ -1,7 +1,8 @@
+
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AppHeader } from "@/components/layout/app-header";
@@ -11,9 +12,10 @@ import { MarketValueEstimator } from "@/components/multiplier/market-value-estim
 import { FruitsCatalog } from "@/components/multiplier/fruits-catalog";
 import { SavedResults } from "@/components/multiplier/saved-results";
 import { estimateMarketValue, type EstimateMarketValueInput, type EstimateMarketValueOutput } from "@/ai/flows/estimate-market-value";
-import type { CalculationData, CalculationState, SavedCalculation, Mutation } from "@/types";
+import type { CalculationData, CalculationState, SavedCalculation } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form"; // Import Form
 import { Save } from "lucide-react";
 
 const mutationSchema = z.object({
@@ -34,7 +36,7 @@ const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
   fruitAmount: 1,
   fruitType: "Apple",
-  mutations: [{ id: crypto.randomUUID(), value: 5, amount: 1, type: "Sparkle" }],
+  mutations: [{ id: "initial-mutation-" + Math.random().toString(36).substr(2, 9), value: 5, amount: 1, type: "Sparkle" }],
 };
 
 export default function FruityMultiplierPage() {
@@ -47,39 +49,81 @@ export default function FruityMultiplierPage() {
   });
   const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>([]);
 
-  const { control, register, handleSubmit, watch, reset, formState } = useForm<CalculationData>({
+  const formMethods = useForm<CalculationData>({
     resolver: zodResolver(calculationFormSchema),
     defaultValues: initialCalculationData,
+    mode: "onChange", // Added mode for better UX with isValid
   });
+
+  const { control, handleSubmit, watch, reset, formState } = formMethods;
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "mutations",
   });
 
-  const watchedValues = watch();
+  const watchedFormValues = watch();
+  const watchedFormValuesString = JSON.stringify(watchedFormValues);
 
   useEffect(() => {
     const calculateRealTimeTotal = (data: CalculationData): number => {
-      let total = data.fruitBaseValue * data.fruitAmount;
-      data.mutations.forEach(mutation => {
-        total += mutation.value * mutation.amount;
-      });
+      let total = (data.fruitBaseValue || 0) * (data.fruitAmount || 0);
+      if (Array.isArray(data.mutations)) {
+        data.mutations.forEach(mutation => {
+          total += (mutation.value || 0) * (mutation.amount || 0);
+        });
+      }
       return total;
     };
     
-    // Check if watchedValues are fully initialized
-    if (watchedValues.fruitBaseValue !== undefined && watchedValues.fruitAmount !== undefined && watchedValues.mutations) {
-        const currentFormDataIsValid = calculationFormSchema.safeParse(watchedValues).success;
-        if (currentFormDataIsValid) {
-            const newTotal = calculateRealTimeTotal(watchedValues as CalculationData); // Cast as schema is validated
-            setCalculationState(prev => ({ ...prev, realTimeTotalValue: newTotal, ...watchedValues }));
+    const currentWatchedValues = JSON.parse(watchedFormValuesString);
+
+    if (currentWatchedValues.fruitBaseValue !== undefined && 
+        currentWatchedValues.fruitAmount !== undefined && 
+        currentWatchedValues.mutations
+    ) {
+        const validationResult = calculationFormSchema.safeParse(currentWatchedValues);
+
+        if (validationResult.success) {
+            const validData = validationResult.data;
+            const newTotal = calculateRealTimeTotal(validData);
+            
+            setCalculationState(prev => {
+                if (
+                    prev.realTimeTotalValue === newTotal &&
+                    prev.fruitBaseValue === validData.fruitBaseValue &&
+                    prev.fruitAmount === validData.fruitAmount &&
+                    prev.fruitType === validData.fruitType &&
+                    JSON.stringify(prev.mutations || []) === JSON.stringify(validData.mutations || [])
+                ) {
+                    return prev; 
+                }
+                return { 
+                    ...prev, 
+                    realTimeTotalValue: newTotal,
+                    fruitBaseValue: validData.fruitBaseValue,
+                    fruitAmount: validData.fruitAmount,
+                    fruitType: validData.fruitType,
+                    mutations: validData.mutations,
+                };
+            });
         } else {
-            // Optionally handle invalid intermediate states, e.g., by not updating total or showing a temporary warning
-            // For now, we only update if valid to avoid NaN or incorrect calculations during typing
+             setCalculationState(prev => {
+                if (prev.realTimeTotalValue !== 0) {
+                    return { ...prev, realTimeTotalValue: 0 };
+                }
+                return prev;
+             });
         }
+    } else {
+        setCalculationState(prev => {
+            if (prev.realTimeTotalValue !== 0) {
+                return { ...prev, realTimeTotalValue: 0 };
+            }
+            return prev;
+        });
     }
-  }, [watchedValues]);
+  }, [watchedFormValuesString, calculationFormSchema]);
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -89,20 +133,9 @@ export default function FruityMultiplierPage() {
   }, []);
 
   const handleEstimateMarketValue = async () => {
-    // Ensure data is valid before submitting
-    const validationResult = calculationFormSchema.safeParse(watchedValues);
-    if (!validationResult.success) {
-      toast({
-        title: "Invalid Input",
-        description: "Please check your inputs. Some values are invalid.",
-        variant: "destructive",
-      });
-      // Trigger form validation display
-      handleSubmit(() => {})(); // Empty submit to show errors
-      return;
-    }
-    
-    const currentData = validationResult.data;
+    // Use current form values directly, validation is checked by button's disabled state
+    // and RHF's handleSubmit will also validate.
+    const currentData = watch(); // get latest values
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
@@ -128,8 +161,15 @@ export default function FruityMultiplierPage() {
     }
   };
 
+  // This is the function passed to the form's onSubmit
+  const onFormSubmitForEstimate = () => {
+    // handleSubmit from RHF already ensures validation.
+    handleEstimateMarketValue();
+  };
+
+
   const saveCurrentCalculation = () => {
-     const validationResult = calculationFormSchema.safeParse(watchedValues);
+    const validationResult = calculationFormSchema.safeParse(watchedFormValues); 
     if (!validationResult.success) {
       toast({
         title: "Cannot Save",
@@ -143,11 +183,11 @@ export default function FruityMultiplierPage() {
     const currentDataToSave = validationResult.data;
     const newSavedCalculation: SavedCalculation = {
       ...currentDataToSave,
-      id: crypto.randomUUID(),
+      id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
       timestamp: Date.now(),
-      realTimeTotalValue: calculationState.realTimeTotalValue,
+      realTimeTotalValue: calculationState.realTimeTotalValue, 
     };
-    const updatedSaved = [newSavedCalculation, ...savedCalculations].slice(0, 10); // Limit to 10 saved
+    const updatedSaved = [newSavedCalculation, ...savedCalculations].slice(0, 10); 
     setSavedCalculations(updatedSaved);
     localStorage.setItem("fruityMultiplierSaved", JSON.stringify(updatedSaved));
     toast({
@@ -157,12 +197,10 @@ export default function FruityMultiplierPage() {
   };
   
   const loadCalculation = (calculationToLoad: CalculationData) => {
-    reset(calculationToLoad); // This updates the form with react-hook-form
-    // Trigger effect to update realTimeTotalValue
+    reset(calculationToLoad); 
     setCalculationState(prev => ({
       ...prev,
-      ...calculationToLoad,
-      aiEstimate: undefined, // Clear previous AI estimate
+      aiEstimate: undefined, 
       aiError: null,
     }));
     toast({
@@ -179,48 +217,60 @@ export default function FruityMultiplierPage() {
     });
   };
 
+  const addMutation = () => {
+    append({ 
+      id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
+      value: 0, 
+      amount: 1, 
+      type: "Generic" 
+    });
+  };
+
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
-        <form onSubmit={handleSubmit(handleEstimateMarketValue)} className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <section className="lg:col-span-2 space-y-8">
-              <ValueInputForm
-                control={control}
-                register={register}
-                formState={formState}
-                fieldArray={{ fields, append, remove }}
-                onSubmitMarketValue={handleEstimateMarketValue} // Changed from direct handleSubmit
-                isEstimatingMarketValue={calculationState.isLoadingAiEstimate}
-              />
-              <MarketValueEstimator
-                aiEstimate={calculationState.aiEstimate}
-                isLoading={calculationState.isLoadingAiEstimate}
-                error={calculationState.aiError}
-              />
-            </section>
+        <Form {...formMethods}>
+          <form onSubmit={handleSubmit(onFormSubmitForEstimate)} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              <section className="lg:col-span-2 space-y-8">
+                <ValueInputForm
+                  control={control}
+                  formState={formState}
+                  fieldArray={{ fields, append: addMutation, remove }}
+                  onSubmitMarketValue={handleEstimateMarketValue} // Passed for the button inside ValueInputForm
+                  isEstimatingMarketValue={calculationState.isLoadingAiEstimate}
+                />
+                <MarketValueEstimator
+                  aiEstimate={calculationState.aiEstimate}
+                  isLoading={calculationState.isLoadingAiEstimate}
+                  error={calculationState.aiError}
+                />
+              </section>
 
-            <aside className="space-y-8 lg:sticky lg:top-20"> {/* Sticky for large screens */}
-              <RealTimeCalculationDisplay totalValue={calculationState.realTimeTotalValue} />
-               <Button 
-                type="button"
-                onClick={saveCurrentCalculation}
-                className="w-full bg-accent hover:bg-accent/80 text-accent-foreground"
-                size="lg"
-              >
-                <Save className="w-5 h-5 mr-2" />
-                Save Current Calculation
-              </Button>
-              <FruitsCatalog />
-              <SavedResults 
-                savedCalculations={savedCalculations}
-                onLoadCalculation={loadCalculation}
-                onClearAll={clearSavedCalculations}
-              />
-            </aside>
-          </div>
-        </form>
+              <aside className="space-y-8 lg:sticky lg:top-20"> 
+                <RealTimeCalculationDisplay totalValue={calculationState.realTimeTotalValue} />
+                 <Button 
+                  type="button"
+                  onClick={saveCurrentCalculation}
+                  className="w-full bg-accent hover:bg-accent/80 text-accent-foreground"
+                  size="lg"
+                  disabled={!formState.isValid} // Disable if form is not valid
+                >
+                  <Save className="w-5 h-5 mr-2" />
+                  Save Current Calculation
+                </Button>
+                <FruitsCatalog />
+                <SavedResults 
+                  savedCalculations={savedCalculations}
+                  onLoadCalculation={loadCalculation}
+                  onClearAll={clearSavedCalculations}
+                />
+              </aside>
+            </div>
+          </form>
+        </Form>
       </main>
       <footer className="text-center p-4 text-sm text-muted-foreground border-t">
         Fruity Multiplier &copy; {new Date().getFullYear()}
@@ -228,3 +278,4 @@ export default function FruityMultiplierPage() {
     </div>
   );
 }
+
