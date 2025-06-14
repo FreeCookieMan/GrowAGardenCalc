@@ -21,7 +21,7 @@ import { Save } from "lucide-react";
 const environmentalMutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.number(), // Value is fixed by type, so direct number expected
+  valueMultiplier: z.number(), 
 });
 
 const calculationFormSchema = z.object({
@@ -34,14 +34,11 @@ const calculationFormSchema = z.object({
     (val) => (String(val).trim() === "" ? NaN : Number(val)),
     z.number({invalid_type_error: "Mass (kg) must be a number."}).min(0, "Mass (kg) must be non-negative.")
   ),
-  baseMassKg: z.preprocess(
-    (val) => (String(val).trim() === "" ? NaN : Number(val)),
-    z.number({invalid_type_error: "Base Mass (kg) must be a number."}).gt(0, "Base Mass (kg) must be greater than 0.")
-  ),
+  // baseMassKg removed
   growthMutationType: z.enum(["none", "gold", "rainbow"], {
     errorMap: () => ({ message: "Growth Mutation type is required." }),
   }),
-  mutations: z.array(environmentalMutationSchema), // Environmental mutations
+  mutations: z.array(environmentalMutationSchema),
 });
 
 const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static", type: "Wet", valueMultiplier: 2.0 };
@@ -50,7 +47,7 @@ const initialCalculationData: CalculationData = {
   fruitType: "Apple",
   basePrice: 10,
   massKg: 1,
-  baseMassKg: 1,
+  // baseMassKg: 1, // Removed
   growthMutationType: "none",
   mutations: [initialEnvironmentalMutation],
 };
@@ -61,20 +58,15 @@ export default function FruityMultiplierPage() {
   const calculateTotalValue = (data: CalculationData): number => {
     if (!data) return 0;
 
-    const { basePrice, massKg, baseMassKg, growthMutationType, mutations: environmentalMutations } = data;
+    const { basePrice, massKg, growthMutationType, mutations: environmentalMutations } = data;
 
-    // Validate inputs for calculation
     if (isNaN(basePrice) || basePrice < 0 ||
-        isNaN(massKg) || massKg < 0 ||
-        isNaN(baseMassKg) || baseMassKg <= 0) {
+        isNaN(massKg) || massKg < 0) { // Removed baseMassKg validation
       return 0;
     }
 
-    // 1. Mass Factor: (Mass / Base Mass)^2, but 1 if Mass < Base Mass
-    let massTerm = 1;
-    if (massKg >= baseMassKg) {
-      massTerm = (massKg / baseMassKg) ** 2;
-    }
+    // 1. Mass Factor: Directly use massKg. If massKg is 0, total value becomes 0.
+    const massTerm = massKg; 
     
     // 2. Base Price: Already provided as data.basePrice
 
@@ -94,7 +86,7 @@ export default function FruityMultiplierPage() {
     }
     const numEnvironmentalMutations = Array.isArray(environmentalMutations) ? environmentalMutations.length : 0;
     let environmentalFactor = 1 + sumEnvironmentalBonuses - numEnvironmentalMutations;
-    environmentalFactor = Math.max(0, environmentalFactor); // Ensure factor is not negative
+    environmentalFactor = Math.max(0, environmentalFactor); 
 
     const totalValue = massTerm * basePrice * growthMultiplierValue * environmentalFactor;
     return isNaN(totalValue) ? 0 : totalValue;
@@ -122,9 +114,7 @@ export default function FruityMultiplierPage() {
   });
 
   const watchedFormValues = watch();
-  // Use a stable string representation for the dependency array
   const watchedFormValuesString = JSON.stringify(watchedFormValues);
-
 
   useEffect(() => {
     const currentRawValues = JSON.parse(watchedFormValuesString);
@@ -136,18 +126,16 @@ export default function FruityMultiplierPage() {
 
       setCalculationState(prev => ({
         ...prev,
-        ...validData, // Update all form-related fields in state
+        ...validData, 
         realTimeTotalValue: newTotal,
       }));
     } else {
-      // Even if validation fails, update the state with current (possibly invalid) raw values
-      // to keep form inputs in sync, and set total to 0.
       setCalculationState(prev => ({
         ...prev,
         fruitType: currentRawValues.fruitType,
-        basePrice: currentRawValues.basePrice as any, // Keep raw value for input display
+        basePrice: currentRawValues.basePrice as any, 
         massKg: currentRawValues.massKg as any,
-        baseMassKg: currentRawValues.baseMassKg as any,
+        // baseMassKg removed
         growthMutationType: currentRawValues.growthMutationType,
         mutations: (currentRawValues.mutations || []).map((m: any) => ({ 
           id: m.id,
@@ -158,7 +146,7 @@ export default function FruityMultiplierPage() {
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); // Removed calculateTotalValue from deps as it's stable now
+  }, [watchedFormValuesString]); 
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -172,16 +160,15 @@ export default function FruityMultiplierPage() {
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
-      // Ensure numeric conversion for AI flow
       const input: EstimateMarketValueInput = {
         fruitType: currentData.fruitType,
         basePrice: Number(currentData.basePrice),
         massKg: Number(currentData.massKg),
-        baseMassKg: Number(currentData.baseMassKg),
+        // baseMassKg: Number(currentData.baseMassKg), // Removed
         growthMutationType: currentData.growthMutationType,
         environmentalMutations: currentData.mutations.map(m => ({ 
           type: m.type, 
-          valueMultiplier: Number(m.valueMultiplier) // This is already a number due to form logic
+          valueMultiplier: Number(m.valueMultiplier)
         })),
       };
       const result = await estimateMarketValue(input);
@@ -218,7 +205,7 @@ export default function FruityMultiplierPage() {
       ...currentDataToSave,
       basePrice: Number(currentDataToSave.basePrice),
       massKg: Number(currentDataToSave.massKg),
-      baseMassKg: Number(currentDataToSave.baseMassKg),
+      // baseMassKg: Number(currentDataToSave.baseMassKg), // Removed
       growthMutationType: currentDataToSave.growthMutationType as GrowthMutationType,
       mutations: currentDataToSave.mutations.map(m => ({
         ...m,
@@ -243,7 +230,6 @@ export default function FruityMultiplierPage() {
       ...prev,
       aiEstimate: undefined, 
       aiError: null,
-       // Recalculate total value upon loading
       realTimeTotalValue: calculateTotalValue(calculationToLoad)
     }));
     toast({
@@ -311,3 +297,4 @@ export default function FruityMultiplierPage() {
     </div>
   );
 }
+

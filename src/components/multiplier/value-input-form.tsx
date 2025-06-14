@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Apple, Carrot, Leaf, Grape, Flower2, Sprout, Bean, 
   Sparkles, PlusCircle, XCircle, Calculator, 
-  Award, Zap // Icons for Gold and Rainbow
+  Award, Zap 
 } from "lucide-react";
 import type { CalculationData, GrowthMutationType } from "@/types";
 import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/components/ui/form";
@@ -18,7 +18,7 @@ import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/comp
 interface ValueInputFormProps {
   control: Control<CalculationData>;
   formState: FormState<CalculationData>;
-  fieldArray: UseFieldArrayReturn<CalculationData, "mutations", "id">; // "mutations" are environmental
+  fieldArray: UseFieldArrayReturn<CalculationData, "mutations", "id">; 
   onSubmitMarketValue: () => void;
   isEstimatingMarketValue: boolean;
 }
@@ -52,7 +52,6 @@ const growthMutationOptions: { value: GrowthMutationType; label: string; icon: J
   { value: "rainbow", label: "Rainbow (x50)", icon: <Zap className="w-4 h-4 mr-2 text-purple-500" />, multiplier: 50 },
 ];
 
-// Environmental Mutations (excluding Gold & Rainbow which are Growth Mutations)
 const environmentalMutationTypes = [
   { value: "Wet", label: "Wet", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
   { value: "Chilled", label: "Chilled", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
@@ -64,9 +63,7 @@ const environmentalMutationTypes = [
   { value: "HoneyGlazed", label: "HoneyGlazed", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
   { value: "Heavenly", label: "Heavenly", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
   { value: "Frozen", label: "Frozen", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 10 },
-  // Golden (x20) is now a Growth Mutation
   { value: "Zombified", label: "Zombified", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 25 },
-  // Rainbow (x50) is now a Growth Mutation
   { value: "Shocked", label: "Shocked", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 100 },
   { value: "Celestial", label: "Celestial", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 120 },
   { value: "Disco", label: "Disco", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 125 },
@@ -170,33 +167,13 @@ export function ValueInputForm({
             )}
           />
 
-          <FormField
-            control={control}
-            name="baseMassKg"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Base Mass (kg)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 0.2"
-                    {...field}
-                    onChange={event => field.onChange(event.target.value)}
-                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)}
-                    min="0.000001" // Technically > 0
-                    step="any"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* BaseMassKg FormField removed */}
 
           <FormField
             control={control}
             name="growthMutationType"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem className="md:col-span-2"> {/* Adjusted to span 2 if baseMassKg is removed */}
                 <FormLabel>Growth Mutation</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
@@ -313,3 +290,4 @@ export function ValueInputForm({
     </Card>
   );
 }
+

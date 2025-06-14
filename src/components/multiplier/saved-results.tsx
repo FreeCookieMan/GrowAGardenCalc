@@ -35,7 +35,7 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
         {savedCalculations.length === 0 ? (
           <p className="text-muted-foreground text-sm text-center py-4">No saved calculations yet.</p>
         ) : (
-          <ScrollArea className="h-[200px] pr-3"> {/* Keep pr-3 for scrollbar space if needed, test this */}
+          <ScrollArea className="h-[200px] pr-3">
             <ul className="space-y-3">
               {savedCalculations.map((calc) => (
                 <li key={calc.id} className="p-3 border rounded-md hover:shadow-sm transition-shadow bg-background/70">
@@ -46,8 +46,9 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
                         Base Price: {calc.basePrice}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Mass: {calc.massKg}kg (Base: {calc.baseMassKg}kg)
+                        Mass: {calc.massKg}kg
                       </p>
+                      {/* Removed Base Mass display */}
                       <p className="text-xs text-muted-foreground">
                         Growth: {calc.growthMutationType}
                       </p>
@@ -81,3 +82,4 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
     </Card>
   );
 }
+

@@ -22,7 +22,7 @@ const EstimateMarketValueInputSchema = z.object({
   fruitType: z.string().describe('The type of fruit (e.g., Apple, Tomato).'),
   basePrice: z.coerce.number().min(0, "Base Price must be non-negative.").describe('The constant base price unique to this crop type.'),
   massKg: z.coerce.number().min(0, "Mass (kg) must be non-negative.").describe('The mass of the fruit in kilograms.'),
-  baseMassKg: z.coerce.number().gt(0, "Base Mass (kg) must be greater than 0.").describe('The constant base mass unique to this crop type. If actual mass is less than base mass, the mass factor in the price formula becomes 1.'),
+  // baseMassKg removed
   growthMutationType: z.enum(["none", "gold", "rainbow"]).describe('The type of growth mutation applied: "none" (x1), "gold" (x20), or "rainbow" (x50).'),
   environmentalMutations: z.array(EnvironmentalMutationInputSchema).describe('An array of applied environmental mutations. Each has a type and its own valueMultiplier.'),
 });
@@ -51,10 +51,7 @@ Total Price = (Mass Factor) * Base Price * (Growth Mutation Multiplier) * (Envir
 
 Where each component is calculated as follows:
 
-1.  **Mass Factor**: 
-    *   If Mass (kg) < Base Mass (kg), then Mass Factor = 1.
-    *   Otherwise, Mass Factor = (Mass (kg) / Base Mass (kg))^2.
-    *   Effectively: max(1, Mass (kg) / Base Mass (kg))^2, but ensure Base Mass (kg) is not zero (it is validated to be >0). If Mass < Base Mass, the term (Mass/Base Mass)^2 is replaced by 1.
+1.  **Mass Factor**: This is directly the 'Mass (kg)' value provided. For example, if 'Mass (kg)' is 2, the Mass Factor is 2. If 'Mass (kg)' is 0.5, the Mass Factor is 0.5. If 'Mass (kg)' is 0, the Mass Factor is 0.
 
 2.  **Base Price**: This is the given 'basePrice' for the fruit type.
 
@@ -76,7 +73,6 @@ Input Details:
 - Fruit Type: {{{fruitType}}}
 - Base Price: {{{basePrice}}}
 - Mass (kg): {{{massKg}}}
-- Base Mass (kg): {{{baseMassKg}}}
 - Growth Mutation Type: {{{growthMutationType}}}
 - Environmental Mutations:
   {{#if environmentalMutations}}
@@ -98,11 +94,8 @@ const estimateMarketValueFlow = ai.defineFlow(
     outputSchema: EstimateMarketValueOutputSchema,
   },
   async input => {
-    // The Handlebars 'subtract' helper is not standard.
-    // The AI will need to perform the bonus calculation based on the description.
-    // The prompt clearly states: "Bonus = {{{subtract this.valueMultiplier 1}}})" - this is illustrative for the AI.
-    // The AI must understand to calculate bonus as (valueMultiplier - 1).
     const {output} = await prompt(input);
     return output!;
   }
 );
+

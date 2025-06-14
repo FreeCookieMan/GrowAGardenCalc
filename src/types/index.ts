@@ -11,12 +11,10 @@ export type GrowthMutationType = "none" | "gold" | "rainbow";
 
 export interface CalculationData {
   fruitType: string;
-  // Renamed from fruitBaseValue to align with new formula terminology
   basePrice: number; 
   massKg: number;
-  baseMassKg: number;
+  // baseMassKg: number; // Removed
   growthMutationType: GrowthMutationType;
-  // These are now "Environmental Mutations"
   mutations: Mutation[]; 
 }
 
@@ -32,3 +30,4 @@ export interface SavedCalculation extends CalculationData {
   timestamp: number;
   realTimeTotalValue: number;
 }
+
