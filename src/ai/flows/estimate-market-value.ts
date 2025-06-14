@@ -22,7 +22,6 @@ const EstimateMarketValueInputSchema = z.object({
   fruitType: z.string().describe('The type of fruit (e.g., Apple, Tomato).'),
   basePrice: z.coerce.number().min(0, "Base Price must be non-negative.").describe('The constant base price unique to this crop type.'),
   massKg: z.coerce.number().min(0, "Mass (kg) must be non-negative.").describe('The mass of the fruit in kilograms.'),
-  // baseMassKg removed
   growthMutationType: z.enum(["none", "gold", "rainbow"]).describe('The type of growth mutation applied: "none" (x1), "gold" (x20), or "rainbow" (x50).'),
   environmentalMutations: z.array(EnvironmentalMutationInputSchema).describe('An array of applied environmental mutations. Each has a type and its own valueMultiplier.'),
 });
@@ -77,7 +76,7 @@ Input Details:
 - Environmental Mutations:
   {{#if environmentalMutations}}
     {{#each environmentalMutations}}
-    - Type: {{{this.type}}}, Value Multiplier for bonus calculation: {{{this.valueMultiplier}}} (Bonus = {{{subtract this.valueMultiplier 1}}})
+    - Type: {{{this.type}}}, Value Multiplier: {{{this.valueMultiplier}}}
     {{/each}}
   {{else}}
     No environmental mutations.
