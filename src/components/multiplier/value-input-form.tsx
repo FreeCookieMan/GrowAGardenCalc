@@ -72,7 +72,7 @@ export function ValueInputForm({
   const addMutationField = () => {
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      valueMultiplier: 0.1, // Renamed from factor
+      valueMultiplier: 1.1, 
       type: "Generic" 
     });
   };
@@ -164,14 +164,14 @@ export function ValueInputForm({
               
               <FormField
                 control={control}
-                name={`mutations.${index}.valueMultiplier`} // Renamed from factor
+                name={`mutations.${index}.valueMultiplier`}
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Value Multiplier (e.g. 0.5 for +50%)</FormLabel> {/* Updated Label */}
+                    <FormLabel>Value Multiplier (e.g., 2 to double value)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="e.g., 0.5" 
+                        placeholder="e.g., 2" 
                         {...inputField}
                         onChange={event => inputField.onChange(parseFloat(event.target.value) || 0)} 
                         min="0"

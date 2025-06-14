@@ -21,7 +21,7 @@ import { Save } from "lucide-react";
 const mutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.number().min(0, "Value Multiplier must be non-negative"), // Renamed from factor
+  valueMultiplier: z.number().min(0, "Value Multiplier must be non-negative"),
 });
 
 const calculationFormSchema = z.object({
@@ -33,14 +33,14 @@ const calculationFormSchema = z.object({
 const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
   fruitType: "Apple",
-  mutations: [{ id: "initial-mutation-static", type: "Sparkle", valueMultiplier: 0.5 }], // Renamed from factor
+  mutations: [{ id: "initial-mutation-static", type: "Sparkle", valueMultiplier: 1.0 }],
 };
 
 export default function FruityMultiplierPage() {
   const { toast } = useToast();
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
-    realTimeTotalValue: 0, 
+    realTimeTotalValue: 0,
     isLoadingAiEstimate: false,
     aiError: null,
   });
@@ -60,37 +60,33 @@ export default function FruityMultiplierPage() {
   });
 
   const watchedFormValues = watch();
-  // Use JSON.stringify for complex dependency to avoid infinite loops.
-  const watchedFormValuesString = JSON.stringify(watchedFormValues); 
+  const watchedFormValuesString = JSON.stringify(watchedFormValues);
 
   useEffect(() => {
     const calculateRealTimeTotal = (data: CalculationData): number => {
-      let value = data.fruitBaseValue || 0;
+      let totalValue = data.fruitBaseValue || 0;
       if (Array.isArray(data.mutations)) {
-        data.mutations.forEach(mutation => {
-          value *= (1 + (mutation.valueMultiplier || 0)); // Renamed from factor
-        });
+        for (const mutation of data.mutations) {
+          totalValue *= (typeof mutation.valueMultiplier === 'number' ? mutation.valueMultiplier : 1);
+        }
       }
-      return value;
+      return totalValue;
     };
     
     let currentWatchedValues: Partial<CalculationData> = {};
     try {
-        // Ensure watchedFormValuesString is valid JSON before parsing
         currentWatchedValues = JSON.parse(watchedFormValuesString);
     } catch (e) {
         console.error("Failed to parse watchedFormValuesString", e);
-        // Optionally reset or handle the error state
         setCalculationState(prev => ({ ...prev, realTimeTotalValue: 0 }));
         return;
     }
 
-    // Ensure fruitBaseValue is a number before proceeding
     if (typeof currentWatchedValues.fruitBaseValue === 'number') {
         const dataToValidate: CalculationData = {
             fruitBaseValue: currentWatchedValues.fruitBaseValue,
             fruitType: currentWatchedValues.fruitType ?? '',
-            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({id: m.id || `m-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, type: m.type || '', valueMultiplier: m.valueMultiplier ?? 0})) : [], // Renamed from factor
+            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({id: m.id || `m-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, type: m.type || '', valueMultiplier: typeof m.valueMultiplier === 'number' ? m.valueMultiplier : 1})) : [],
         };
         const validationResult = calculationFormSchema.safeParse(dataToValidate);
 
@@ -99,14 +95,13 @@ export default function FruityMultiplierPage() {
             const newTotal = calculateRealTimeTotal(validData);
             
             setCalculationState(prev => {
-                // More robust check to prevent unnecessary updates
                 if (
                     prev.realTimeTotalValue === newTotal &&
                     prev.fruitBaseValue === validData.fruitBaseValue &&
                     prev.fruitType === validData.fruitType &&
                     JSON.stringify(prev.mutations || []) === JSON.stringify(validData.mutations || [])
                 ) {
-                    return prev; // No change, return previous state
+                    return prev;
                 }
                 return { 
                     ...prev, 
@@ -117,7 +112,6 @@ export default function FruityMultiplierPage() {
                 };
             });
         } else {
-             // If validation fails, and total is not already 0, reset it.
              setCalculationState(prev => {
                 if (prev.realTimeTotalValue !== 0) {
                     return { ...prev, realTimeTotalValue: 0 };
@@ -126,7 +120,6 @@ export default function FruityMultiplierPage() {
              });
         }
     } else {
-        // If fruitBaseValue is not a number (e.g. undefined initially), reset total if not already 0.
         setCalculationState(prev => {
             if (prev.realTimeTotalValue !== 0) {
                 return { ...prev, realTimeTotalValue: 0 };
@@ -135,7 +128,7 @@ export default function FruityMultiplierPage() {
         });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); // Dependency is the stringified version of form values
+  }, [watchedFormValuesString]); 
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -152,7 +145,7 @@ export default function FruityMultiplierPage() {
       const input: EstimateMarketValueInput = {
         fruitBaseValue: currentData.fruitBaseValue,
         fruitType: currentData.fruitType,
-        mutations: currentData.mutations.map(m => ({ type: m.type, valueMultiplier: m.valueMultiplier })), // Renamed from factor
+        mutations: currentData.mutations.map(m => ({ type: m.type, valueMultiplier: m.valueMultiplier })),
       };
       const result = await estimateMarketValue(input);
       setCalculationState(prev => ({ ...prev, aiEstimate: result, isLoadingAiEstimate: false }));
@@ -180,7 +173,6 @@ export default function FruityMultiplierPage() {
         description: "Please ensure all inputs are valid before saving.",
         variant: "destructive",
       });
-      // Trigger validation display
       handleSubmit(() => {})()
       return;
     }
@@ -225,7 +217,7 @@ export default function FruityMultiplierPage() {
   const addMutation = () => {
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      valueMultiplier: 0.1, // Renamed from factor
+      valueMultiplier: 1.1, 
       type: "Generic" 
     });
   };
