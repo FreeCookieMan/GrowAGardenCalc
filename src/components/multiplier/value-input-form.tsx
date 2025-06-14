@@ -45,7 +45,6 @@ export const fruitTypes = [
   { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10830, baseMassKg: 5.28, themeColor: "hsla(25, 55%, 82%, 0.1)" },
   { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 25270, baseMassKg: 1.0, themeColor: "hsla(120, 60%, 80%, 0.1)" },
   { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 50000, baseMassKg: 0.05, themeColor: "hsla(15, 90%, 80%, 0.12)" },
-  { value: "Sugar Apple", label: "Sugar Apple", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 0, baseMassKg: 0.2, themeColor: "hsla(100, 70%, 90%, 0.1)" }
 ];
 
 const growthMutationOptions: { value: GrowthMutationType; label: string; icon: JSX.Element, multiplier: number }[] = [
@@ -177,6 +176,25 @@ export function ValueInputForm({
             )}
           />
 
+          <FormField
+            control={control}
+            name="baseMassKg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Base Mass (kg) (Fixed per Fruit)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 1.0"
+                    {...field}
+                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)}
+                    disabled
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={control}
