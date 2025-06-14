@@ -21,7 +21,7 @@ import { Save } from "lucide-react";
 const mutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  factor: z.number().min(0, "Factor must be non-negative"),
+  valueMultiplier: z.number().min(0, "Value Multiplier must be non-negative"), // Renamed from factor
 });
 
 const calculationFormSchema = z.object({
@@ -33,7 +33,7 @@ const calculationFormSchema = z.object({
 const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
   fruitType: "Apple",
-  mutations: [{ id: "initial-mutation-static", type: "Sparkle", factor: 0.5 }],
+  mutations: [{ id: "initial-mutation-static", type: "Sparkle", valueMultiplier: 0.5 }], // Renamed from factor
 };
 
 export default function FruityMultiplierPage() {
@@ -60,15 +60,15 @@ export default function FruityMultiplierPage() {
   });
 
   const watchedFormValues = watch();
-  const watchedFormValuesString = JSON.stringify(watchedFormValues);
+  // Use JSON.stringify for complex dependency to avoid infinite loops.
+  const watchedFormValuesString = JSON.stringify(watchedFormValues); 
 
   useEffect(() => {
     const calculateRealTimeTotal = (data: CalculationData): number => {
       let value = data.fruitBaseValue || 0;
       if (Array.isArray(data.mutations)) {
         data.mutations.forEach(mutation => {
-          // Each mutation factor (F) multiplies the current value by (1 + F)
-          value *= (1 + (mutation.factor || 0));
+          value *= (1 + (mutation.valueMultiplier || 0)); // Renamed from factor
         });
       }
       return value;
@@ -76,18 +76,21 @@ export default function FruityMultiplierPage() {
     
     let currentWatchedValues: Partial<CalculationData> = {};
     try {
+        // Ensure watchedFormValuesString is valid JSON before parsing
         currentWatchedValues = JSON.parse(watchedFormValuesString);
     } catch (e) {
         console.error("Failed to parse watchedFormValuesString", e);
+        // Optionally reset or handle the error state
         setCalculationState(prev => ({ ...prev, realTimeTotalValue: 0 }));
         return;
     }
 
-    if (currentWatchedValues.fruitBaseValue !== undefined) {
+    // Ensure fruitBaseValue is a number before proceeding
+    if (typeof currentWatchedValues.fruitBaseValue === 'number') {
         const dataToValidate: CalculationData = {
-            fruitBaseValue: currentWatchedValues.fruitBaseValue ?? 0,
+            fruitBaseValue: currentWatchedValues.fruitBaseValue,
             fruitType: currentWatchedValues.fruitType ?? '',
-            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({id: m.id || `m-${Date.now()}-${Math.random()}`, type: m.type || '', factor: m.factor ?? 0})) : [],
+            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({id: m.id || `m-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, type: m.type || '', valueMultiplier: m.valueMultiplier ?? 0})) : [], // Renamed from factor
         };
         const validationResult = calculationFormSchema.safeParse(dataToValidate);
 
@@ -96,13 +99,14 @@ export default function FruityMultiplierPage() {
             const newTotal = calculateRealTimeTotal(validData);
             
             setCalculationState(prev => {
+                // More robust check to prevent unnecessary updates
                 if (
                     prev.realTimeTotalValue === newTotal &&
                     prev.fruitBaseValue === validData.fruitBaseValue &&
                     prev.fruitType === validData.fruitType &&
                     JSON.stringify(prev.mutations || []) === JSON.stringify(validData.mutations || [])
                 ) {
-                    return prev; 
+                    return prev; // No change, return previous state
                 }
                 return { 
                     ...prev, 
@@ -113,6 +117,7 @@ export default function FruityMultiplierPage() {
                 };
             });
         } else {
+             // If validation fails, and total is not already 0, reset it.
              setCalculationState(prev => {
                 if (prev.realTimeTotalValue !== 0) {
                     return { ...prev, realTimeTotalValue: 0 };
@@ -121,6 +126,7 @@ export default function FruityMultiplierPage() {
              });
         }
     } else {
+        // If fruitBaseValue is not a number (e.g. undefined initially), reset total if not already 0.
         setCalculationState(prev => {
             if (prev.realTimeTotalValue !== 0) {
                 return { ...prev, realTimeTotalValue: 0 };
@@ -128,7 +134,8 @@ export default function FruityMultiplierPage() {
             return prev;
         });
     }
-  }, [watchedFormValuesString]); // Removed calculationFormSchema as it's stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedFormValuesString]); // Dependency is the stringified version of form values
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -145,7 +152,7 @@ export default function FruityMultiplierPage() {
       const input: EstimateMarketValueInput = {
         fruitBaseValue: currentData.fruitBaseValue,
         fruitType: currentData.fruitType,
-        mutations: currentData.mutations.map(m => ({ type: m.type, factor: m.factor })),
+        mutations: currentData.mutations.map(m => ({ type: m.type, valueMultiplier: m.valueMultiplier })), // Renamed from factor
       };
       const result = await estimateMarketValue(input);
       setCalculationState(prev => ({ ...prev, aiEstimate: result, isLoadingAiEstimate: false }));
@@ -218,7 +225,7 @@ export default function FruityMultiplierPage() {
   const addMutation = () => {
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      factor: 0.1, 
+      valueMultiplier: 0.1, // Renamed from factor
       type: "Generic" 
     });
   };
@@ -252,7 +259,7 @@ export default function FruityMultiplierPage() {
                   onClick={saveCurrentCalculation}
                   className="w-full bg-accent hover:bg-accent/80 text-accent-foreground"
                   size="lg"
-                  disabled={!formState.isValid} 
+                  disabled={!formState.isValid || calculationState.isLoadingAiEstimate} 
                 >
                   <Save className="w-5 h-5 mr-2" />
                   Save Current Calculation

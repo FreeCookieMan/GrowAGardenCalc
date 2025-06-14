@@ -1,14 +1,14 @@
+
 import type { EstimateMarketValueOutput } from '@/ai/flows/estimate-market-value';
 
 export interface Mutation {
   id: string;
   type: string;
-  factor: number; // Changed from value and amount
+  valueMultiplier: number; // Changed from factor
 }
 
 export interface CalculationData {
   fruitBaseValue: number;
-  // fruitAmount: number; // Removed
   fruitType: string;
   mutations: Mutation[];
 }

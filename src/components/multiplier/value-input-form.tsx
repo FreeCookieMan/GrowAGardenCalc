@@ -72,7 +72,7 @@ export function ValueInputForm({
   const addMutationField = () => {
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      factor: 0.1, // Default factor for new mutations
+      valueMultiplier: 0.1, // Renamed from factor
       type: "Generic" 
     });
   };
@@ -84,7 +84,7 @@ export function ValueInputForm({
         <CardDescription>Enter the base value for your fruit and its mutations.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start"> {/* Changed to md:grid-cols-2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           
           <FormField
             control={control}
@@ -131,13 +131,12 @@ export function ValueInputForm({
             )}
           />
           
-          {/* Fruit Amount field removed */}
         </div>
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium font-headline">Mutations</h3>
           {fields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border rounded-md shadow-sm bg-background/50 relative"> {/* Changed to md:grid-cols-3 and items-end */}
+            <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border rounded-md shadow-sm bg-background/50 relative">
               <FormField
                 control={control}
                 name={`mutations.${index}.type`}
@@ -165,18 +164,18 @@ export function ValueInputForm({
               
               <FormField
                 control={control}
-                name={`mutations.${index}.factor`} // Changed from value to factor
+                name={`mutations.${index}.valueMultiplier`} // Renamed from factor
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Factor (e.g. 0.5 for +50%)</FormLabel> {/* Updated Label */}
+                    <FormLabel>Value Multiplier (e.g. 0.5 for +50%)</FormLabel> {/* Updated Label */}
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="e.g., 0.5" // Updated placeholder
+                        placeholder="e.g., 0.5" 
                         {...inputField}
-                        onChange={event => inputField.onChange(parseFloat(event.target.value) || 0)} // Ensure float, default to 0
+                        onChange={event => inputField.onChange(parseFloat(event.target.value) || 0)} 
                         min="0"
-                        step="0.01" // Allow decimal input
+                        step="0.01" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -184,13 +183,12 @@ export function ValueInputForm({
                 )}
               />
 
-              {/* Mutation Amount field removed */}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => remove(index)}
-                className="text-destructive hover:bg-destructive/10" // Removed self-center, mt-4, md:mt-0, md:justify-self-end to align with items-end on grid
+                className="text-destructive hover:bg-destructive/10" 
                 aria-label="Remove mutation"
               >
                 <XCircle className="w-5 h-5" />
@@ -200,7 +198,7 @@ export function ValueInputForm({
           <Button
             type="button"
             variant="outline"
-            onClick={addMutationField} // Calls the local addMutationField
+            onClick={addMutationField} 
             className="w-full border-dashed hover:border-solid hover:bg-accent/20"
           >
             <PlusCircle className="w-4 h-4 mr-2" />
