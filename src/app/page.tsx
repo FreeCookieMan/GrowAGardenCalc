@@ -12,10 +12,10 @@ import { MarketValueEstimator } from "@/components/multiplier/market-value-estim
 import { FruitsCatalog } from "@/components/multiplier/fruits-catalog";
 import { SavedResults } from "@/components/multiplier/saved-results";
 import { estimateMarketValue, type EstimateMarketValueInput, type EstimateMarketValueOutput } from "@/ai/flows/estimate-market-value";
-import type { CalculationData, CalculationState, SavedCalculation } from "@/types";
+import type { CalculationData, CalculationState, SavedCalculation, Mutation } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form"; // Import Form
+import { Form } from "@/components/ui/form";
 import { Save } from "lucide-react";
 
 const mutationSchema = z.object({
@@ -36,14 +36,14 @@ const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
   fruitAmount: 1,
   fruitType: "Apple",
-  mutations: [{ id: "initial-mutation-" + Math.random().toString(36).substr(2, 9), value: 5, amount: 1, type: "Sparkle" }],
+  mutations: [{ id: "initial-mutation-static", value: 5, amount: 1, type: "Sparkle" }], // Use static ID
 };
 
 export default function FruityMultiplierPage() {
   const { toast } = useToast();
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
-    realTimeTotalValue: 0,
+    realTimeTotalValue: 0, // Will be calculated by useEffect
     isLoadingAiEstimate: false,
     aiError: null,
   });
@@ -52,7 +52,7 @@ export default function FruityMultiplierPage() {
   const formMethods = useForm<CalculationData>({
     resolver: zodResolver(calculationFormSchema),
     defaultValues: initialCalculationData,
-    mode: "onChange", // Added mode for better UX with isValid
+    mode: "onChange",
   });
 
   const { control, handleSubmit, watch, reset, formState } = formMethods;
@@ -76,13 +76,25 @@ export default function FruityMultiplierPage() {
       return total;
     };
     
-    const currentWatchedValues = JSON.parse(watchedFormValuesString);
+    let currentWatchedValues: Partial<CalculationData> = {};
+    try {
+        currentWatchedValues = JSON.parse(watchedFormValuesString);
+    } catch (e) {
+        console.error("Failed to parse watchedFormValuesString", e);
+        setCalculationState(prev => ({ ...prev, realTimeTotalValue: 0 }));
+        return;
+    }
 
     if (currentWatchedValues.fruitBaseValue !== undefined && 
-        currentWatchedValues.fruitAmount !== undefined && 
-        currentWatchedValues.mutations
+        currentWatchedValues.fruitAmount !== undefined
     ) {
-        const validationResult = calculationFormSchema.safeParse(currentWatchedValues);
+        const dataToValidate: CalculationData = {
+            fruitBaseValue: currentWatchedValues.fruitBaseValue ?? 0,
+            fruitAmount: currentWatchedValues.fruitAmount ?? 0,
+            fruitType: currentWatchedValues.fruitType ?? '',
+            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations : [],
+        };
+        const validationResult = calculationFormSchema.safeParse(dataToValidate);
 
         if (validationResult.success) {
             const validData = validationResult.data;
@@ -133,9 +145,7 @@ export default function FruityMultiplierPage() {
   }, []);
 
   const handleEstimateMarketValue = async () => {
-    // Use current form values directly, validation is checked by button's disabled state
-    // and RHF's handleSubmit will also validate.
-    const currentData = watch(); // get latest values
+    const currentData = watch(); 
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
@@ -161,12 +171,9 @@ export default function FruityMultiplierPage() {
     }
   };
 
-  // This is the function passed to the form's onSubmit
   const onFormSubmitForEstimate = () => {
-    // handleSubmit from RHF already ensures validation.
     handleEstimateMarketValue();
   };
-
 
   const saveCurrentCalculation = () => {
     const validationResult = calculationFormSchema.safeParse(watchedFormValues); 
@@ -226,7 +233,6 @@ export default function FruityMultiplierPage() {
     });
   };
 
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
@@ -239,7 +245,7 @@ export default function FruityMultiplierPage() {
                   control={control}
                   formState={formState}
                   fieldArray={{ fields, append: addMutation, remove }}
-                  onSubmitMarketValue={handleEstimateMarketValue} // Passed for the button inside ValueInputForm
+                  onSubmitMarketValue={handleEstimateMarketValue} 
                   isEstimatingMarketValue={calculationState.isLoadingAiEstimate}
                 />
                 <MarketValueEstimator
@@ -256,7 +262,7 @@ export default function FruityMultiplierPage() {
                   onClick={saveCurrentCalculation}
                   className="w-full bg-accent hover:bg-accent/80 text-accent-foreground"
                   size="lg"
-                  disabled={!formState.isValid} // Disable if form is not valid
+                  disabled={!formState.isValid} 
                 >
                   <Save className="w-5 h-5 mr-2" />
                   Save Current Calculation
@@ -278,4 +284,3 @@ export default function FruityMultiplierPage() {
     </div>
   );
 }
-
