@@ -20,7 +20,7 @@ export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
       <div className="container flex h-14 items-center">
         <div className="mr-auto flex items-center"> {/* Changed mr-4 to mr-auto to push settings to right */}
           <Package2 className="h-6 w-6 mr-2 text-primary" />
-          <span className="font-bold text-lg font-headline">Fruity Multiplier</span>
+          <span className="font-bold text-lg font-headline">Grow a Garden Value Calculator</span>
         </div>
 
         <DropdownMenu>

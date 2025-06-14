@@ -316,7 +316,7 @@ export default function FruityMultiplierPage() {
         </Form>
       </main>
       <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-        Fruity Multiplier &copy; {new Date().getFullYear()}
+        Grow a Garden Value Calculator &copy; {new Date().getFullYear()}
       </footer>
       <ThemeCustomizationModal
         isOpen={isThemeModalOpen}

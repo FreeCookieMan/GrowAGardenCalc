@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeInitializer } from '@/components/theme/theme-initializer';
 
 export const metadata: Metadata = {
-  title: 'Fruity Multiplier',
-  description: 'Calculate the value of items with fruit and mutation multipliers.',
+  title: 'Grow a Garden Value Calculator',
+  description: 'Calculate the value of items from Grow a Garden with various multipliers.',
 };
 
 export default function RootLayout({
