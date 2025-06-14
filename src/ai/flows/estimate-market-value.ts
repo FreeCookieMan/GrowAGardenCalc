@@ -14,11 +14,11 @@ import {z} from 'genkit';
 
 const MutationInputSchema = z.object({
   type: z.string().describe('The type of the mutation.'),
-  valueMultiplier: z.number().describe('The factor by which this mutation directly multiplies the current value. For example, a multiplier of 2 doubles the value, 0.5 halves it. Must be non-negative.'),
+  valueMultiplier: z.coerce.number().min(0, "Mutation value multiplier must be non-negative.").describe('The factor by which this mutation directly multiplies the current value. For example, a multiplier of 2 doubles the value, 0.5 halves it. Must be non-negative.'),
 });
 
 const EstimateMarketValueInputSchema = z.object({
-  fruitBaseValue: z.number().describe('The base value of the fruit. Must be non-negative.'),
+  fruitBaseValue: z.coerce.number().min(0, "Fruit base value must be non-negative.").describe('The base value of the fruit. Must be non-negative.'),
   fruitType: z.string().describe('The type of fruit.'),
   mutations: z.array(MutationInputSchema).describe('An array of mutations, each with a type and a value multiplier. The total value is calculated by starting with the fruitBaseValue, and then for each mutation, multiplying the current value by that mutation\'s value_multiplier.'),
 });
@@ -33,15 +33,8 @@ const EstimateMarketValueOutputSchema = z.object({
 export type EstimateMarketValueOutput = z.infer<typeof EstimateMarketValueOutputSchema>;
 
 export async function estimateMarketValue(input: EstimateMarketValueInput): Promise<EstimateMarketValueOutput> {
-  // Basic validation to ensure AI gets reasonable numbers, though Zod on client should handle most.
-  if (input.fruitBaseValue < 0) {
-    throw new Error("Fruit base value cannot be negative.");
-  }
-  for (const mutation of input.mutations) {
-    if (mutation.valueMultiplier < 0) {
-      throw new Error("Mutation value multiplier cannot be negative.");
-    }
-  }
+  // The Genkit flow will now handle coercion and validation based on the updated schema.
+  // Basic client-side validation helps, but server-side schema is authoritative.
   return estimateMarketValueFlow(input);
 }
 
