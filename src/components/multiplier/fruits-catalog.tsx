@@ -5,6 +5,7 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Apple, Carrot, Leaf, Grape, Flower2, Sprout, Bean } from "lucide-react";
 import Image from "next/image";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const fruits = [
   { name: "Carrot", icon: <Carrot className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "carrot vegetable" },
@@ -36,26 +37,27 @@ export function FruitsCatalog() {
         <CardTitle className="font-headline text-xl">Fruits Catalog</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {fruits.map((fruit) => (
-            <div key={fruit.name} className="flex flex-col items-center p-3 border rounded-lg hover:shadow-md transition-shadow bg-card">
-              <Image 
-                src={fruit.image} 
-                alt={fruit.name} 
-                width={60} 
-                height={60} 
-                className="rounded-md mb-2 object-cover"
-                data-ai-hint={fruit.hint}
-              />
-               <div className="text-center text-sm font-medium flex items-center justify-center space-x-1">
-                {React.cloneElement(fruit.icon, { className: "w-5 h-5 text-primary" })}
-                <span>{fruit.name}</span>
+        <ScrollArea className="h-[300px] w-full pr-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {fruits.map((fruit) => (
+              <div key={fruit.name} className="flex flex-col items-center p-3 border rounded-lg hover:shadow-md transition-shadow bg-card">
+                <Image 
+                  src={fruit.image} 
+                  alt={fruit.name} 
+                  width={60} 
+                  height={60} 
+                  className="rounded-md mb-2 object-cover"
+                  data-ai-hint={fruit.hint}
+                />
+                 <div className="text-center text-sm font-medium flex items-center justify-center space-x-1">
+                  {React.cloneElement(fruit.icon, { className: "w-5 h-5 text-primary" })}
+                  <span>{fruit.name}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
 }
-
