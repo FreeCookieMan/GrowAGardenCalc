@@ -4,13 +4,20 @@ import type { EstimateMarketValueOutput } from '@/ai/flows/estimate-market-value
 export interface Mutation {
   id: string;
   type: string;
-  valueMultiplier: number; // Changed from factor
+  valueMultiplier: number;
 }
 
+export type GrowthMutationType = "none" | "gold" | "rainbow";
+
 export interface CalculationData {
-  fruitBaseValue: number;
   fruitType: string;
-  mutations: Mutation[];
+  // Renamed from fruitBaseValue to align with new formula terminology
+  basePrice: number; 
+  massKg: number;
+  baseMassKg: number;
+  growthMutationType: GrowthMutationType;
+  // These are now "Environmental Mutations"
+  mutations: Mutation[]; 
 }
 
 export interface CalculationState extends CalculationData {

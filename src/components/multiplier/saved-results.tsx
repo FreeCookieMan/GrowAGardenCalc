@@ -35,7 +35,7 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
         {savedCalculations.length === 0 ? (
           <p className="text-muted-foreground text-sm text-center py-4">No saved calculations yet.</p>
         ) : (
-          <ScrollArea className="h-[200px] pr-3">
+          <ScrollArea className="h-[200px] pr-3"> {/* Keep pr-3 for scrollbar space if needed, test this */}
             <ul className="space-y-3">
               {savedCalculations.map((calc) => (
                 <li key={calc.id} className="p-3 border rounded-md hover:shadow-sm transition-shadow bg-background/70">
@@ -43,13 +43,19 @@ export function SavedResults({ savedCalculations, onLoadCalculation, onClearAll 
                     <div>
                       <p className="font-semibold text-sm">{calc.fruitType}</p>
                       <p className="text-xs text-muted-foreground">
-                        Base: {calc.fruitBaseValue}
+                        Base Price: {calc.basePrice}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Mutations: {calc.mutations.length}
+                        Mass: {calc.massKg}kg (Base: {calc.baseMassKg}kg)
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Growth: {calc.growthMutationType}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Env. Mutations: {calc.mutations.length}
                       </p>
                        <p className="text-xs text-primary font-medium">
-                        Total: {calc.realTimeTotalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                        Total Value: {calc.realTimeTotalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                     <Button

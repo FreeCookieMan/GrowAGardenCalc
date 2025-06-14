@@ -8,25 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Apple, 
-  Carrot, 
-  Leaf, 
-  Grape, 
-  Flower2, 
-  Sprout, 
-  Bean, 
-  Sparkles, 
-  PlusCircle, 
-  XCircle, 
-  Calculator 
+  Apple, Carrot, Leaf, Grape, Flower2, Sprout, Bean, 
+  Sparkles, PlusCircle, XCircle, Calculator, 
+  Award, Zap // Icons for Gold and Rainbow
 } from "lucide-react";
-import type { CalculationData } from "@/types";
+import type { CalculationData, GrowthMutationType } from "@/types";
 import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/components/ui/form";
 
 interface ValueInputFormProps {
   control: Control<CalculationData>;
   formState: FormState<CalculationData>;
-  fieldArray: UseFieldArrayReturn<CalculationData, "mutations", "id">;
+  fieldArray: UseFieldArrayReturn<CalculationData, "mutations", "id">; // "mutations" are environmental
   onSubmitMarketValue: () => void;
   isEstimatingMarketValue: boolean;
 }
@@ -54,7 +46,14 @@ const fruitTypes = [
   { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" /> },
 ];
 
-const mutationTypes = [
+const growthMutationOptions: { value: GrowthMutationType; label: string; icon: JSX.Element, multiplier: number }[] = [
+  { value: "none", label: "None (x1)", icon: <XCircle className="w-4 h-4 mr-2 text-muted-foreground" />, multiplier: 1 },
+  { value: "gold", label: "Gold (x20)", icon: <Award className="w-4 h-4 mr-2 text-yellow-500" />, multiplier: 20 },
+  { value: "rainbow", label: "Rainbow (x50)", icon: <Zap className="w-4 h-4 mr-2 text-purple-500" />, multiplier: 50 },
+];
+
+// Environmental Mutations (excluding Gold & Rainbow which are Growth Mutations)
+const environmentalMutationTypes = [
   { value: "Wet", label: "Wet", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
   { value: "Chilled", label: "Chilled", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
   { value: "Choc", label: "Choc", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
@@ -65,9 +64,9 @@ const mutationTypes = [
   { value: "HoneyGlazed", label: "HoneyGlazed", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
   { value: "Heavenly", label: "Heavenly", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
   { value: "Frozen", label: "Frozen", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 10 },
-  { value: "Golden", label: "Golden", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 20 },
+  // Golden (x20) is now a Growth Mutation
   { value: "Zombified", label: "Zombified", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 25 },
-  { value: "Rainbow", label: "Rainbow", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 50 },
+  // Rainbow (x50) is now a Growth Mutation
   { value: "Shocked", label: "Shocked", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 100 },
   { value: "Celestial", label: "Celestial", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 120 },
   { value: "Disco", label: "Disco", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 125 },
@@ -85,8 +84,8 @@ export function ValueInputForm({
 }: ValueInputFormProps) {
   const { setValue } = useFormContext<CalculationData>();
 
-  const addMutationField = () => {
-    const defaultMutation = mutationTypes[0] || { value: "Wet", defaultMultiplier: 2.0 };
+  const addEnvironmentalMutationField = () => {
+    const defaultMutation = environmentalMutationTypes[0] || { value: "Wet", defaultMultiplier: 2.0 };
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
       type: defaultMutation.value, 
@@ -98,11 +97,10 @@ export function ValueInputForm({
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Item Details</CardTitle>
-        <CardDescription>Enter the base value for your fruit and its mutations.</CardDescription>
+        <CardDescription>Enter fruit properties and mutations according to the pricing formula.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          
           <FormField
             control={control}
             name="fruitType"
@@ -130,10 +128,10 @@ export function ValueInputForm({
 
           <FormField
             control={control}
-            name="fruitBaseValue"
+            name="basePrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fruit Base Value</FormLabel>
+                <FormLabel>Base Price</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -142,17 +140,86 @@ export function ValueInputForm({
                     onChange={event => field.onChange(event.target.value)} 
                     value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)} 
                     min="0"
+                    step="any"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
+          <FormField
+            control={control}
+            name="massKg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mass (kg)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 0.5"
+                    {...field}
+                    onChange={event => field.onChange(event.target.value)}
+                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)}
+                    min="0"
+                    step="any"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="baseMassKg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Base Mass (kg)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 0.2"
+                    {...field}
+                    onChange={event => field.onChange(event.target.value)}
+                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)}
+                    min="0.000001" // Technically > 0
+                    step="any"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="growthMutationType"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel>Growth Mutation</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger id="growthMutationType">
+                      <SelectValue placeholder="Select growth mutation" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {growthMutationOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center">{option.icon}{option.label}</div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium font-headline">Mutations</h3>
+          <h3 className="text-lg font-medium font-headline">Environmental Mutations</h3>
           {fields.map((field, index) => (
             <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border rounded-md shadow-sm bg-background/50 relative">
               <FormField
@@ -160,11 +227,11 @@ export function ValueInputForm({
                 name={`mutations.${index}.type`}
                 render={({ field: selectField }) => (
                   <FormItem>
-                    <FormLabel>Mutation Type</FormLabel>
+                    <FormLabel>Env. Mutation Type</FormLabel>
                      <Select 
                         onValueChange={(newType) => {
                           selectField.onChange(newType);
-                          const selectedMutation = mutationTypes.find(m => m.value === newType);
+                          const selectedMutation = environmentalMutationTypes.find(m => m.value === newType);
                           if (selectedMutation) {
                             setValue(`mutations.${index}.valueMultiplier`, selectedMutation.defaultMultiplier);
                           }
@@ -177,7 +244,7 @@ export function ValueInputForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mutationTypes.map((type) => (
+                        {environmentalMutationTypes.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             <div className="flex items-center">{type.icon}{type.label}</div>
                           </SelectItem>
@@ -194,7 +261,7 @@ export function ValueInputForm({
                 name={`mutations.${index}.valueMultiplier`}
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Value Multiplier</FormLabel>
+                    <FormLabel>Value Multiplier (Fixed)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -215,7 +282,7 @@ export function ValueInputForm({
                 size="icon"
                 onClick={() => remove(index)}
                 className="text-destructive hover:bg-destructive/10 md:col-start-3 md:justify-self-end" 
-                aria-label="Remove mutation"
+                aria-label="Remove environmental mutation"
               >
                 <XCircle className="w-5 h-5" />
               </Button>
@@ -224,11 +291,11 @@ export function ValueInputForm({
           <Button
             type="button"
             variant="outline"
-            onClick={addMutationField} 
+            onClick={addEnvironmentalMutationField} 
             className="w-full border-dashed hover:border-solid hover:bg-accent/20"
           >
             <PlusCircle className="w-4 h-4 mr-2" />
-            Add Mutation
+            Add Environmental Mutation
           </Button>
         </div>
 
@@ -246,4 +313,3 @@ export function ValueInputForm({
     </Card>
   );
 }
-

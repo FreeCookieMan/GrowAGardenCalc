@@ -12,39 +12,97 @@ import { MarketValueEstimator } from "@/components/multiplier/market-value-estim
 import { FruitsCatalog } from "@/components/multiplier/fruits-catalog";
 import { SavedResults } from "@/components/multiplier/saved-results";
 import { estimateMarketValue, type EstimateMarketValueInput } from "@/ai/flows/estimate-market-value";
-import type { CalculationData, CalculationState, SavedCalculation } from "@/types";
+import type { CalculationData, CalculationState, SavedCalculation, GrowthMutationType, Mutation as EnvMutation } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Save } from "lucide-react";
 
-const mutationSchema = z.object({
+const environmentalMutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.number({invalid_type_error: "Multiplier must be a number."}).min(0, "Multiplier must be non-negative."),
+  valueMultiplier: z.number(), // Value is fixed by type, so direct number expected
 });
 
 const calculationFormSchema = z.object({
-  fruitBaseValue: z.preprocess(
+  fruitType: z.string().min(1, "Fruit Type is required"),
+  basePrice: z.preprocess(
     (val) => (String(val).trim() === "" ? NaN : Number(val)),
-    z.number({invalid_type_error: "Base value must be a number."}).min(0, "Base value must be non-negative.")
+    z.number({invalid_type_error: "Base Price must be a number."}).min(0, "Base Price must be non-negative.")
   ),
-  fruitType: z.string().min(1, "Type is required"),
-  mutations: z.array(mutationSchema),
+  massKg: z.preprocess(
+    (val) => (String(val).trim() === "" ? NaN : Number(val)),
+    z.number({invalid_type_error: "Mass (kg) must be a number."}).min(0, "Mass (kg) must be non-negative.")
+  ),
+  baseMassKg: z.preprocess(
+    (val) => (String(val).trim() === "" ? NaN : Number(val)),
+    z.number({invalid_type_error: "Base Mass (kg) must be a number."}).gt(0, "Base Mass (kg) must be greater than 0.")
+  ),
+  growthMutationType: z.enum(["none", "gold", "rainbow"], {
+    errorMap: () => ({ message: "Growth Mutation type is required." }),
+  }),
+  mutations: z.array(environmentalMutationSchema), // Environmental mutations
 });
 
-// Corresponds to "Wet" mutation with x2 multiplier
+const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static", type: "Wet", valueMultiplier: 2.0 };
+
 const initialCalculationData: CalculationData = {
-  fruitBaseValue: 10,
   fruitType: "Apple",
-  mutations: [{ id: "initial-mutation-static", type: "Wet", valueMultiplier: 2.0 }],
+  basePrice: 10,
+  massKg: 1,
+  baseMassKg: 1,
+  growthMutationType: "none",
+  mutations: [initialEnvironmentalMutation],
 };
 
 export default function FruityMultiplierPage() {
   const { toast } = useToast();
+
+  const calculateTotalValue = (data: CalculationData): number => {
+    if (!data) return 0;
+
+    const { basePrice, massKg, baseMassKg, growthMutationType, mutations: environmentalMutations } = data;
+
+    // Validate inputs for calculation
+    if (isNaN(basePrice) || basePrice < 0 ||
+        isNaN(massKg) || massKg < 0 ||
+        isNaN(baseMassKg) || baseMassKg <= 0) {
+      return 0;
+    }
+
+    // 1. Mass Factor: (Mass / Base Mass)^2, but 1 if Mass < Base Mass
+    let massTerm = 1;
+    if (massKg >= baseMassKg) {
+      massTerm = (massKg / baseMassKg) ** 2;
+    }
+    
+    // 2. Base Price: Already provided as data.basePrice
+
+    // 3. Growth Mutation Multiplier
+    let growthMultiplierValue = 1;
+    if (growthMutationType === "gold") growthMultiplierValue = 20;
+    if (growthMutationType === "rainbow") growthMultiplierValue = 50;
+
+    // 4. Environmental Factor: (1 + Sum_of_Environmental_Mutation_Bonuses - Number_of_Environmental_Mutations)
+    let sumEnvironmentalBonuses = 0;
+    if (Array.isArray(environmentalMutations)) {
+      environmentalMutations.forEach(mutation => {
+        if (typeof mutation.valueMultiplier === 'number' && !isNaN(mutation.valueMultiplier)) {
+          sumEnvironmentalBonuses += (mutation.valueMultiplier - 1);
+        }
+      });
+    }
+    const numEnvironmentalMutations = Array.isArray(environmentalMutations) ? environmentalMutations.length : 0;
+    let environmentalFactor = 1 + sumEnvironmentalBonuses - numEnvironmentalMutations;
+    environmentalFactor = Math.max(0, environmentalFactor); // Ensure factor is not negative
+
+    const totalValue = massTerm * basePrice * growthMultiplierValue * environmentalFactor;
+    return isNaN(totalValue) ? 0 : totalValue;
+  };
+  
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
-    realTimeTotalValue: initialCalculationData.fruitBaseValue * (initialCalculationData.mutations[0]?.valueMultiplier || 1),
+    realTimeTotalValue: calculateTotalValue(initialCalculationData),
     isLoadingAiEstimate: false,
     aiError: null,
   });
@@ -64,6 +122,7 @@ export default function FruityMultiplierPage() {
   });
 
   const watchedFormValues = watch();
+  // Use a stable string representation for the dependency array
   const watchedFormValuesString = JSON.stringify(watchedFormValues);
 
 
@@ -73,49 +132,33 @@ export default function FruityMultiplierPage() {
 
     if (validationResult.success) {
       const validData = validationResult.data;
-      let newTotal = validData.fruitBaseValue; 
-      if (Array.isArray(validData.mutations)) {
-        for (const mutation of validData.mutations) {
-          newTotal *= mutation.valueMultiplier; 
-        }
-      }
-      if (calculationState.realTimeTotalValue !== newTotal ||
-          calculationState.fruitBaseValue !== validData.fruitBaseValue ||
-          calculationState.fruitType !== validData.fruitType ||
-          JSON.stringify(calculationState.mutations) !== JSON.stringify(validData.mutations)
-      ) {
-        setCalculationState(prev => ({
-          ...prev,
-          realTimeTotalValue: newTotal,
-          fruitBaseValue: validData.fruitBaseValue,
-          fruitType: validData.fruitType,
-          mutations: validData.mutations.map(m => ({
-            ...m,
-            valueMultiplier: m.valueMultiplier,
-          })),
-        }));
-      }
+      const newTotal = calculateTotalValue(validData);
+
+      setCalculationState(prev => ({
+        ...prev,
+        ...validData, // Update all form-related fields in state
+        realTimeTotalValue: newTotal,
+      }));
     } else {
-      if (calculationState.realTimeTotalValue !== 0 ||
-          calculationState.fruitBaseValue !== (currentRawValues.fruitBaseValue as any) || 
-          calculationState.fruitType !== currentRawValues.fruitType ||
-          JSON.stringify(calculationState.mutations) !== JSON.stringify(currentRawValues.mutations)
-      ) {
-        setCalculationState(prev => ({
-          ...prev,
-          realTimeTotalValue: 0, 
-          fruitBaseValue: currentRawValues.fruitBaseValue as any,
-          fruitType: currentRawValues.fruitType,
-          mutations: currentRawValues.mutations.map((m: any) => ({ 
-            id: m.id,
-            type: m.type,
-            valueMultiplier: m.valueMultiplier as any, 
-          })),
-        }));
-      }
+      // Even if validation fails, update the state with current (possibly invalid) raw values
+      // to keep form inputs in sync, and set total to 0.
+      setCalculationState(prev => ({
+        ...prev,
+        fruitType: currentRawValues.fruitType,
+        basePrice: currentRawValues.basePrice as any, // Keep raw value for input display
+        massKg: currentRawValues.massKg as any,
+        baseMassKg: currentRawValues.baseMassKg as any,
+        growthMutationType: currentRawValues.growthMutationType,
+        mutations: (currentRawValues.mutations || []).map((m: any) => ({ 
+          id: m.id,
+          type: m.type,
+          valueMultiplier: m.valueMultiplier as any, 
+        })),
+        realTimeTotalValue: 0, 
+      }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); 
+  }, [watchedFormValuesString]); // Removed calculateTotalValue from deps as it's stable now
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -129,12 +172,16 @@ export default function FruityMultiplierPage() {
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
+      // Ensure numeric conversion for AI flow
       const input: EstimateMarketValueInput = {
-        fruitBaseValue: Number(currentData.fruitBaseValue),
         fruitType: currentData.fruitType,
-        mutations: currentData.mutations.map(m => ({ 
+        basePrice: Number(currentData.basePrice),
+        massKg: Number(currentData.massKg),
+        baseMassKg: Number(currentData.baseMassKg),
+        growthMutationType: currentData.growthMutationType,
+        environmentalMutations: currentData.mutations.map(m => ({ 
           type: m.type, 
-          valueMultiplier: Number(m.valueMultiplier)
+          valueMultiplier: Number(m.valueMultiplier) // This is already a number due to form logic
         })),
       };
       const result = await estimateMarketValue(input);
@@ -169,14 +216,17 @@ export default function FruityMultiplierPage() {
     const currentDataToSave = getValues(); 
     const newSavedCalculation: SavedCalculation = {
       ...currentDataToSave,
-      fruitBaseValue: Number(currentDataToSave.fruitBaseValue),
+      basePrice: Number(currentDataToSave.basePrice),
+      massKg: Number(currentDataToSave.massKg),
+      baseMassKg: Number(currentDataToSave.baseMassKg),
+      growthMutationType: currentDataToSave.growthMutationType as GrowthMutationType,
       mutations: currentDataToSave.mutations.map(m => ({
         ...m,
         valueMultiplier: Number(m.valueMultiplier)
       })),
       id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
       timestamp: Date.now(),
-      realTimeTotalValue: calculationState.realTimeTotalValue, 
+      realTimeTotalValue: calculateTotalValue(currentDataToSave), 
     };
     const updatedSaved = [newSavedCalculation, ...savedCalculations].slice(0, 10); 
     setSavedCalculations(updatedSaved);
@@ -193,6 +243,8 @@ export default function FruityMultiplierPage() {
       ...prev,
       aiEstimate: undefined, 
       aiError: null,
+       // Recalculate total value upon loading
+      realTimeTotalValue: calculateTotalValue(calculationToLoad)
     }));
     toast({
       title: "Calculation Loaded!",
