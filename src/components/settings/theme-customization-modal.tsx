@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { applyCustomThemeColors, clearCustomThemeColors } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-
+import { Separator } from "@/components/ui/separator";
 
 interface ThemeCustomizationModalProps {
   isOpen: boolean;
@@ -25,83 +25,80 @@ interface ThemeCustomizationModalProps {
 }
 
 export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomizationModalProps) {
-  const [selectedThemeOption, setSelectedThemeOption] = useState<'light' | 'dark' | 'custom'>('light');
-  const [customColor, setCustomColor] = useState<string>("#ADDF6F"); // Default initial custom color
+  const [baseTheme, setBaseTheme] = useState<'light' | 'dark'>('light');
+  const [customPrimaryColor, setCustomPrimaryColor] = useState<string>("#ADDF6F"); // Default initial custom color
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen && typeof window !== 'undefined') {
-        const currentTheme = localStorage.getItem('themePreference') as 'light' | 'dark' | 'custom' || 'light';
-        setSelectedThemeOption(currentTheme);
+        const storedBaseTheme = localStorage.getItem('baseThemePreference') as 'light' | 'dark' || 'light';
+        setBaseTheme(storedBaseTheme);
+
         const storedCustomColor = localStorage.getItem('customPrimaryColor');
         if (storedCustomColor) {
-            setCustomColor(storedCustomColor);
+            setCustomPrimaryColor(storedCustomColor);
         }
     }
   }, [isOpen]);
 
-  const handleThemeOptionChange = (newThemeValue: string) => {
-    const newTheme = newThemeValue as 'light' | 'dark' | 'custom';
-    setSelectedThemeOption(newTheme);
+  const handleBaseThemeChange = (newThemeValue: string) => {
+    const newBaseTheme = newThemeValue as 'light' | 'dark';
+    setBaseTheme(newBaseTheme);
 
     if (typeof window !== 'undefined') {
-        if (newTheme === 'light') {
+        if (newBaseTheme === 'light') {
             document.documentElement.classList.remove('dark');
-            clearCustomThemeColors();
-            localStorage.setItem('themePreference', 'light');
-            localStorage.removeItem('customPrimaryColor'); // Clear custom color if switching to standard theme
-        } else if (newTheme === 'dark') {
+            localStorage.setItem('baseThemePreference', 'light');
+        } else if (newBaseTheme === 'dark') {
             document.documentElement.classList.add('dark');
-            clearCustomThemeColors();
-            localStorage.setItem('themePreference', 'dark');
-            localStorage.removeItem('customPrimaryColor'); // Clear custom color if switching to standard theme
-        } else if (newTheme === 'custom') {
-            // Apply current customColor immediately if switching to custom
-            // or wait for user to press "Apply Color"
-            localStorage.setItem('themePreference', 'custom');
-            // Optionally apply directly: applyCustomThemeColors(customColor);
-            // For now, let's require explicit "Apply Color" click for custom.
-            // If a custom color was previously set, ThemeInitializer would have applied it.
-            // If switching to 'custom' and a customColor is already in state (e.g. from previous save),
-            // we might want to re-apply it.
-            const storedCustom = localStorage.getItem('customPrimaryColor');
-            if(storedCustom) {
-                 applyCustomThemeColors(storedCustom);
-            } else {
-                 applyCustomThemeColors(customColor); // Apply default custom if none stored
+            localStorage.setItem('baseThemePreference', 'dark');
+        }
+        // If a custom primary color is active, it should remain applied on top of the new base theme
+        if (localStorage.getItem('useCustomPrimaryColor') === 'true') {
+            const storedColor = localStorage.getItem('customPrimaryColor');
+            if (storedColor) {
+                applyCustomThemeColors(storedColor);
             }
         }
     }
   };
 
-  const handleApplyCustomColor = () => {
-    if (selectedThemeOption === 'custom' && typeof window !== 'undefined') {
+  const handleApplyCustomPrimaryColor = () => {
+    if (typeof window !== 'undefined') {
       try {
-        applyCustomThemeColors(customColor);
-        localStorage.setItem('customPrimaryColor', customColor);
-        localStorage.setItem('themePreference', 'custom'); // Ensure preference is set to custom
+        applyCustomThemeColors(customPrimaryColor);
+        localStorage.setItem('customPrimaryColor', customPrimaryColor);
+        localStorage.setItem('useCustomPrimaryColor', 'true');
          toast({
-          title: "Custom Theme Applied",
-          description: "Your custom primary color has been applied.",
+          title: "Custom Primary Color Applied",
+          description: "Your custom primary color has been applied over the base theme.",
         });
       } catch (error) {
-         console.error("Error applying custom theme:", error);
+         console.error("Error applying custom primary color:", error);
          toast({
           title: "Error",
-          description: "Could not apply custom theme color.",
+          description: "Could not apply custom primary color.",
           variant: "destructive",
         });
       }
     }
   };
 
+  const handleResetCustomPrimaryColor = () => {
+    if (typeof window !== 'undefined') {
+        clearCustomThemeColors();
+        localStorage.removeItem('customPrimaryColor');
+        localStorage.removeItem('useCustomPrimaryColor');
+        setCustomPrimaryColor("#ADDF6F"); // Reset to default input
+        toast({
+            title: "Custom Primary Color Reset",
+            description: "Primary color has been reset to the base theme's default.",
+        });
+    }
+  };
+
   const handleColorInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomColor(e.target.value);
-    // Optionally apply live if 'custom' is selected, or wait for "Apply" button
-    // if (selectedThemeOption === 'custom') {
-    //   applyCustomThemeColors(e.target.value);
-    //   localStorage.setItem('customPrimaryColor', e.target.value);
-    // }
+    setCustomPrimaryColor(e.target.value);
   };
 
   return (
@@ -110,46 +107,46 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
         <DialogHeader>
           <DialogTitle>Customize Theme</DialogTitle>
           <DialogDescription>
-            Choose your preferred theme or set a custom primary color.
+            Choose a base theme and optionally apply a custom primary color.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
-          <RadioGroup
-            value={selectedThemeOption}
-            onValueChange={handleThemeOptionChange}
-            className="space-y-2"
-          >
-            <div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="light" id="theme-light" />
-                <Label htmlFor="theme-light">Light Mode</Label>
+          <div>
+            <Label className="font-medium text-base">Base Theme</Label>
+            <RadioGroup
+              value={baseTheme}
+              onValueChange={handleBaseThemeChange}
+              className="space-y-2 mt-2"
+            >
+              <div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="light" id="theme-light" />
+                  <Label htmlFor="theme-light">Light Mode</Label>
+                </div>
+                <p className="text-xs text-muted-foreground pl-6 pt-1">A clean and bright interface.</p>
               </div>
-              <p className="text-xs text-muted-foreground pl-6 pt-1">A clean and bright interface.</p>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="dark" id="theme-dark" />
-                <Label htmlFor="theme-dark">Dark Mode</Label>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="dark" id="theme-dark" />
+                  <Label htmlFor="theme-dark">Dark Mode</Label>
+                </div>
+                <p className="text-xs text-muted-foreground pl-6 pt-1">A darker, subdued interface.</p>
               </div>
-              <p className="text-xs text-muted-foreground pl-6 pt-1">A darker, subdued interface.</p>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="custom" id="theme-custom" />
-                <Label htmlFor="theme-custom">Custom Colors</Label>
-              </div>
-               <p className="text-xs text-muted-foreground pl-6 pt-1">Set your own primary, accent, and background colors.</p>
-            </div>
-          </RadioGroup>
+            </RadioGroup>
+          </div>
 
-          {selectedThemeOption === 'custom' && (
-            <div className="space-y-3 pl-6 pt-2 border-l ml-3">
-              <Label htmlFor="custom-color-text-input" className="font-medium">Primary Color (HEX)</Label>
+          <Separator />
+
+          <div>
+             <Label className="font-medium text-base">Custom Primary Color</Label>
+             <p className="text-xs text-muted-foreground pt-1 mb-3">Optionally override the primary and accent colors of the selected base theme.</p>
+            <div className="space-y-3">
+              <Label htmlFor="custom-color-text-input" className="font-medium sr-only">Primary Color (HEX)</Label>
               <div className="flex items-center space-x-3">
                 <Input
                   id="custom-color-text-input"
                   type="text"
-                  value={customColor}
+                  value={customPrimaryColor}
                   onChange={handleColorInputChange}
                   placeholder="#ADDF6F"
                   className="flex-grow"
@@ -157,15 +154,18 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
                 <Input
                   id="custom-color-wheel-input"
                   type="color"
-                  value={customColor}
+                  value={customPrimaryColor}
                   onChange={handleColorInputChange}
                   className="w-10 h-10 p-0 border-none rounded-md cursor-pointer"
                   aria-label="Color picker"
                 />
               </div>
-              <Button onClick={handleApplyCustomColor} variant="outline" size="sm" className="mt-2">Apply Custom Colors</Button>
+              <div className="flex space-x-2">
+                <Button onClick={handleApplyCustomPrimaryColor} variant="default" size="sm" className="mt-2">Apply Primary</Button>
+                <Button onClick={handleResetCustomPrimaryColor} variant="outline" size="sm" className="mt-2">Reset Primary</Button>
+              </div>
             </div>
-          )}
+          </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
