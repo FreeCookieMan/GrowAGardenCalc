@@ -34,7 +34,6 @@ const calculationFormSchema = z.object({
     (val) => (String(val).trim() === "" ? NaN : Number(val)),
     z.number({invalid_type_error: "Mass (kg) must be a number."}).min(0, "Mass (kg) must be non-negative.")
   ),
-  // baseMassKg removed
   growthMutationType: z.enum(["none", "gold", "rainbow"], {
     errorMap: () => ({ message: "Growth Mutation type is required." }),
   }),
@@ -45,9 +44,8 @@ const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static
 
 const initialCalculationData: CalculationData = {
   fruitType: "Apple",
-  basePrice: 10,
+  basePrice: 10, // Fixed base price for Apple
   massKg: 1,
-  // baseMassKg: 1, // Removed
   growthMutationType: "none",
   mutations: [initialEnvironmentalMutation],
 };
@@ -61,21 +59,16 @@ export default function FruityMultiplierPage() {
     const { basePrice, massKg, growthMutationType, mutations: environmentalMutations } = data;
 
     if (isNaN(basePrice) || basePrice < 0 ||
-        isNaN(massKg) || massKg < 0) { // Removed baseMassKg validation
+        isNaN(massKg) || massKg < 0) { 
       return 0;
     }
 
-    // 1. Mass Factor: Directly use massKg. If massKg is 0, total value becomes 0.
     const massTerm = massKg; 
     
-    // 2. Base Price: Already provided as data.basePrice
-
-    // 3. Growth Mutation Multiplier
     let growthMultiplierValue = 1;
     if (growthMutationType === "gold") growthMultiplierValue = 20;
     if (growthMutationType === "rainbow") growthMultiplierValue = 50;
 
-    // 4. Environmental Factor: (1 + Sum_of_Environmental_Mutation_Bonuses - Number_of_Environmental_Mutations)
     let sumEnvironmentalBonuses = 0;
     if (Array.isArray(environmentalMutations)) {
       environmentalMutations.forEach(mutation => {
@@ -135,7 +128,6 @@ export default function FruityMultiplierPage() {
         fruitType: currentRawValues.fruitType,
         basePrice: currentRawValues.basePrice as any, 
         massKg: currentRawValues.massKg as any,
-        // baseMassKg removed
         growthMutationType: currentRawValues.growthMutationType,
         mutations: (currentRawValues.mutations || []).map((m: any) => ({ 
           id: m.id,
@@ -164,7 +156,6 @@ export default function FruityMultiplierPage() {
         fruitType: currentData.fruitType,
         basePrice: Number(currentData.basePrice),
         massKg: Number(currentData.massKg),
-        // baseMassKg: Number(currentData.baseMassKg), // Removed
         growthMutationType: currentData.growthMutationType,
         environmentalMutations: currentData.mutations.map(m => ({ 
           type: m.type, 
@@ -205,7 +196,6 @@ export default function FruityMultiplierPage() {
       ...currentDataToSave,
       basePrice: Number(currentDataToSave.basePrice),
       massKg: Number(currentDataToSave.massKg),
-      // baseMassKg: Number(currentDataToSave.baseMassKg), // Removed
       growthMutationType: currentDataToSave.growthMutationType as GrowthMutationType,
       mutations: currentDataToSave.mutations.map(m => ({
         ...m,

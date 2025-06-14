@@ -24,26 +24,26 @@ interface ValueInputFormProps {
 }
 
 const fruitTypes = [
-  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" /> },
-  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" /> },
-  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" /> },
-  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" /> },
-  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" /> },
-  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" /> },
-  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" /> },
-  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" /> },
-  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" /> },
-  { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" /> },
-  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" /> },
-  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" /> }, 
-  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" /> },
-  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" /> },
-  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" /> },
-  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" /> },
-  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" /> },
-  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" /> },
-  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" /> },
-  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" /> },
+  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 10 }, 
+  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 10 },
+  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 10 },
 ];
 
 const growthMutationOptions: { value: GrowthMutationType; label: string; icon: JSX.Element, multiplier: number }[] = [
@@ -53,22 +53,22 @@ const growthMutationOptions: { value: GrowthMutationType; label: string; icon: J
 ];
 
 const environmentalMutationTypes = [
-  { value: "Wet", label: "Wet", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
-  { value: "Chilled", label: "Chilled", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
-  { value: "Choc", label: "Choc", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
-  { value: "Moonlit", label: "Moonlit", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
-  { value: "Pollinated", label: "Pollinated", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 3 },
-  { value: "Bloodlit", label: "Bloodlit", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 4 },
-  { value: "Plasma", label: "Plasma", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
-  { value: "HoneyGlazed", label: "HoneyGlazed", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
-  { value: "Heavenly", label: "Heavenly", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
-  { value: "Frozen", label: "Frozen", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 10 },
-  { value: "Zombified", label: "Zombified", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 25 },
-  { value: "Shocked", label: "Shocked", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 100 },
-  { value: "Celestial", label: "Celestial", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 120 },
-  { value: "Disco", label: "Disco", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 125 },
-  { value: "Voidtouched", label: "Voidtouched", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 135 },
-  { value: "Dawnbound", label: "Dawnbound", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 150 },
+    { value: "Wet", label: "Wet (x2)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+    { value: "Chilled", label: "Chilled (x2)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+    { value: "Choc", label: "Choc (x2)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+    { value: "Moonlit", label: "Moonlit (x2)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+    { value: "Pollinated", label: "Pollinated (x3)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 3 },
+    { value: "Bloodlit", label: "Bloodlit (x4)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 4 },
+    { value: "Plasma", label: "Plasma (x5)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
+    { value: "HoneyGlazed", label: "HoneyGlazed (x5)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
+    { value: "Heavenly", label: "Heavenly (x5)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
+    { value: "Frozen", label: "Frozen (x10)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 10 },
+    { value: "Zombified", label: "Zombified (x25)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 25 },
+    { value: "Shocked", label: "Shocked (x100)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 100 },
+    { value: "Celestial", label: "Celestial (x120)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 120 },
+    { value: "Disco", label: "Disco (x125)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 125 },
+    { value: "Voidtouched", label: "Voidtouched (x135)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 135 },
+    { value: "Dawnbound", label: "Dawnbound (x150)", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 150 },
 ];
 
 
@@ -104,7 +104,16 @@ export function ValueInputForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fruit Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                <Select 
+                  onValueChange={(newType) => {
+                    field.onChange(newType);
+                    const selectedFruit = fruitTypes.find(f => f.value === newType);
+                    if (selectedFruit) {
+                      setValue('basePrice', selectedFruit.basePrice);
+                    }
+                  }} 
+                  defaultValue={String(field.value)}
+                >
                   <FormControl>
                     <SelectTrigger id="fruitType">
                       <SelectValue placeholder="Select fruit type" />
@@ -128,16 +137,14 @@ export function ValueInputForm({
             name="basePrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Base Price</FormLabel>
+                <FormLabel>Base Price (Fixed)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     placeholder="e.g., 10"
                     {...field}
-                    onChange={event => field.onChange(event.target.value)} 
                     value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)} 
-                    min="0"
-                    step="any"
+                    disabled 
                   />
                 </FormControl>
                 <FormMessage />
@@ -156,7 +163,7 @@ export function ValueInputForm({
                     type="number"
                     placeholder="e.g., 0.5"
                     {...field}
-                    onChange={event => field.onChange(event.target.value)}
+                    onChange={event => field.onChange(event.target.value === '' ? '' : event.target.valueAsNumber)}
                     value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)}
                     min="0"
                     step="any"
@@ -167,13 +174,11 @@ export function ValueInputForm({
             )}
           />
 
-          {/* BaseMassKg FormField removed */}
-
           <FormField
             control={control}
             name="growthMutationType"
             render={({ field }) => (
-              <FormItem className="md:col-span-2"> {/* Adjusted to span 2 if baseMassKg is removed */}
+              <FormItem className="md:col-span-2">
                 <FormLabel>Growth Mutation</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
