@@ -92,7 +92,7 @@ export function ValueInputForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fruit Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                   <FormControl>
                     <SelectTrigger id="fruitType">
                       <SelectValue placeholder="Select fruit type" />
@@ -120,9 +120,10 @@ export function ValueInputForm({
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="e.g., 100"
+                    placeholder="e.g., 10"
                     {...field}
-                    onChange={event => field.onChange(+event.target.value)}
+                    onChange={event => field.onChange(event.target.value)} // Pass raw string
+                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)} // Handle NaN for display
                     min="0"
                   />
                 </FormControl>
@@ -143,7 +144,7 @@ export function ValueInputForm({
                 render={({ field: selectField }) => (
                   <FormItem>
                     <FormLabel>Mutation Type</FormLabel>
-                     <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
+                     <Select onValueChange={selectField.onChange} defaultValue={String(selectField.value)}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select mutation type" />
@@ -167,13 +168,14 @@ export function ValueInputForm({
                 name={`mutations.${index}.valueMultiplier`}
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Value Multiplier (e.g., 2 to double value)</FormLabel>
+                    <FormLabel>Value Multiplier (e.g., 1.5 for x1.5)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="e.g., 2" 
+                        placeholder="e.g., 1.5" 
                         {...inputField}
-                        onChange={event => inputField.onChange(parseFloat(event.target.value) || 0)} 
+                        onChange={event => inputField.onChange(event.target.value)} // Pass raw string
+                        value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)} // Handle NaN for display
                         min="0"
                         step="0.01" 
                       />
@@ -188,7 +190,7 @@ export function ValueInputForm({
                 variant="ghost"
                 size="icon"
                 onClick={() => remove(index)}
-                className="text-destructive hover:bg-destructive/10" 
+                className="text-destructive hover:bg-destructive/10 md:col-start-3 md:justify-self-end" 
                 aria-label="Remove mutation"
               >
                 <XCircle className="w-5 h-5" />

@@ -21,11 +21,17 @@ import { Save } from "lucide-react";
 const mutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.number().min(0, "Value Multiplier must be non-negative"),
+  valueMultiplier: z.preprocess(
+    (val) => (String(val).trim() === "" ? NaN : Number(val)),
+    z.number({invalid_type_error: "Multiplier must be a number."}).min(0, "Multiplier must be non-negative.")
+  ),
 });
 
 const calculationFormSchema = z.object({
-  fruitBaseValue: z.number().min(0, "Must be non-negative"),
+  fruitBaseValue: z.preprocess(
+    (val) => (String(val).trim() === "" ? NaN : Number(val)),
+    z.number({invalid_type_error: "Base value must be a number."}).min(0, "Base value must be non-negative.")
+  ),
   fruitType: z.string().min(1, "Type is required"),
   mutations: z.array(mutationSchema),
 });
@@ -40,7 +46,7 @@ export default function FruityMultiplierPage() {
   const { toast } = useToast();
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
-    realTimeTotalValue: 0,
+    realTimeTotalValue: initialCalculationData.fruitBaseValue * (initialCalculationData.mutations[0]?.valueMultiplier || 1),
     isLoadingAiEstimate: false,
     aiError: null,
   });
@@ -49,7 +55,7 @@ export default function FruityMultiplierPage() {
   const formMethods = useForm<CalculationData>({
     resolver: zodResolver(calculationFormSchema),
     defaultValues: initialCalculationData,
-    mode: "onChange",
+    mode: "onChange", // Validate on change to update formState.isValid
   });
 
   const { control, handleSubmit, watch, reset, formState } = formMethods;
@@ -62,73 +68,59 @@ export default function FruityMultiplierPage() {
   const watchedFormValues = watch();
   const watchedFormValuesString = JSON.stringify(watchedFormValues);
 
+
   useEffect(() => {
-    const calculateRealTimeTotal = (data: CalculationData): number => {
-      let totalValue = data.fruitBaseValue || 0;
-      if (Array.isArray(data.mutations)) {
-        for (const mutation of data.mutations) {
-          totalValue *= (typeof mutation.valueMultiplier === 'number' ? mutation.valueMultiplier : 1);
+    // watchedFormValues contains the raw values from the form, which might be strings for number inputs
+    const currentRawValues = JSON.parse(watchedFormValuesString);
+    
+    const validationResult = calculationFormSchema.safeParse(currentRawValues);
+
+    if (validationResult.success) {
+      const validData = validationResult.data;
+      let newTotal = validData.fruitBaseValue;
+      if (Array.isArray(validData.mutations)) {
+        for (const mutation of validData.mutations) {
+          newTotal *= mutation.valueMultiplier;
         }
       }
-      return totalValue;
-    };
-    
-    let currentWatchedValues: Partial<CalculationData> = {};
-    try {
-        currentWatchedValues = JSON.parse(watchedFormValuesString);
-    } catch (e) {
-        console.error("Failed to parse watchedFormValuesString", e);
-        setCalculationState(prev => ({ ...prev, realTimeTotalValue: 0 }));
-        return;
-    }
-
-    if (typeof currentWatchedValues.fruitBaseValue === 'number') {
-        const dataToValidate: CalculationData = {
-            fruitBaseValue: currentWatchedValues.fruitBaseValue,
-            fruitType: currentWatchedValues.fruitType ?? '',
-            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({id: m.id || `m-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, type: m.type || '', valueMultiplier: typeof m.valueMultiplier === 'number' ? m.valueMultiplier : 1})) : [],
-        };
-        const validationResult = calculationFormSchema.safeParse(dataToValidate);
-
-        if (validationResult.success) {
-            const validData = validationResult.data;
-            const newTotal = calculateRealTimeTotal(validData);
-            
-            setCalculationState(prev => {
-                if (
-                    prev.realTimeTotalValue === newTotal &&
-                    prev.fruitBaseValue === validData.fruitBaseValue &&
-                    prev.fruitType === validData.fruitType &&
-                    JSON.stringify(prev.mutations || []) === JSON.stringify(validData.mutations || [])
-                ) {
-                    return prev;
-                }
-                return { 
-                    ...prev, 
-                    realTimeTotalValue: newTotal,
-                    fruitBaseValue: validData.fruitBaseValue,
-                    fruitType: validData.fruitType,
-                    mutations: validData.mutations,
-                };
-            });
-        } else {
-             setCalculationState(prev => {
-                if (prev.realTimeTotalValue !== 0) {
-                    return { ...prev, realTimeTotalValue: 0 };
-                }
-                return prev;
-             });
-        }
+      // Only update if there's an actual change to avoid loops
+      if (calculationState.realTimeTotalValue !== newTotal ||
+          calculationState.fruitBaseValue !== validData.fruitBaseValue ||
+          calculationState.fruitType !== validData.fruitType ||
+          JSON.stringify(calculationState.mutations) !== JSON.stringify(validData.mutations)
+      ) {
+        setCalculationState(prev => ({
+          ...prev,
+          realTimeTotalValue: newTotal,
+          fruitBaseValue: validData.fruitBaseValue,
+          fruitType: validData.fruitType,
+          mutations: validData.mutations,
+        }));
+      }
     } else {
-        setCalculationState(prev => {
-            if (prev.realTimeTotalValue !== 0) {
-                return { ...prev, realTimeTotalValue: 0 };
-            }
-            return prev;
-        });
+      // Form is invalid (e.g., empty number fields result in NaN after preprocess)
+      // Update realTimeTotalValue to 0 and reflect raw (potentially string) values in calculationState
+      // to keep form inputs populated with what the user typed.
+      if (calculationState.realTimeTotalValue !== 0 ||
+          calculationState.fruitBaseValue !== (currentRawValues.fruitBaseValue as any) ||
+          calculationState.fruitType !== currentRawValues.fruitType ||
+          JSON.stringify(calculationState.mutations) !== JSON.stringify(currentRawValues.mutations)
+      ) {
+        setCalculationState(prev => ({
+          ...prev,
+          realTimeTotalValue: 0,
+          fruitBaseValue: currentRawValues.fruitBaseValue as any, // Keep raw string or number
+          fruitType: currentRawValues.fruitType,
+          mutations: currentRawValues.mutations.map((m: any) => ({
+            id: m.id,
+            type: m.type,
+            valueMultiplier: m.valueMultiplier as any, // Keep raw string or number
+          })),
+        }));
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); 
+  }, [watchedFormValuesString]); // Zod schema is stable, formState is implicitly handled by re-render
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -138,7 +130,8 @@ export default function FruityMultiplierPage() {
   }, []);
 
   const handleEstimateMarketValue = async () => {
-    const currentData = watch(); 
+    // We rely on formState.isValid being true, so data is already validated
+    const currentData = formMethods.getValues(); // Gets validated and transformed values if form is valid
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
@@ -162,22 +155,27 @@ export default function FruityMultiplierPage() {
   };
 
   const onFormSubmitForEstimate = () => {
+    // This function is called by the form's onSubmit, which only fires if RHF validation passes.
+    // However, our button is also bound to onSubmitMarketValue, so we call it directly.
+    // The button itself is disabled if formState.isValid is false.
     handleEstimateMarketValue();
   };
 
   const saveCurrentCalculation = () => {
-    const validationResult = calculationFormSchema.safeParse(watchedFormValues); 
-    if (!validationResult.success) {
+    // Ensure data is valid using the latest form values.
+    // formState.isValid should be up-to-date due to mode: "onChange"
+    if (!formState.isValid) {
       toast({
         title: "Cannot Save",
         description: "Please ensure all inputs are valid before saving.",
         variant: "destructive",
       });
-      handleSubmit(() => {})()
+      // Trigger validation display if not already shown
+      handleSubmit(() => {})() 
       return;
     }
     
-    const currentDataToSave = validationResult.data;
+    const currentDataToSave = formMethods.getValues(); // Gets validated and transformed values
     const newSavedCalculation: SavedCalculation = {
       ...currentDataToSave,
       id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 

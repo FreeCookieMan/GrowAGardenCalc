@@ -14,11 +14,11 @@ import {z} from 'genkit';
 
 const MutationInputSchema = z.object({
   type: z.string().describe('The type of the mutation.'),
-  valueMultiplier: z.number().describe('The factor by which this mutation directly multiplies the current value. For example, a multiplier of 2 doubles the value, 0.5 halves it.'),
+  valueMultiplier: z.number().describe('The factor by which this mutation directly multiplies the current value. For example, a multiplier of 2 doubles the value, 0.5 halves it. Must be non-negative.'),
 });
 
 const EstimateMarketValueInputSchema = z.object({
-  fruitBaseValue: z.number().describe('The base value of the fruit.'),
+  fruitBaseValue: z.number().describe('The base value of the fruit. Must be non-negative.'),
   fruitType: z.string().describe('The type of fruit.'),
   mutations: z.array(MutationInputSchema).describe('An array of mutations, each with a type and a value multiplier. The total value is calculated by starting with the fruitBaseValue, and then for each mutation, multiplying the current value by that mutation\'s value_multiplier.'),
 });
@@ -33,6 +33,15 @@ const EstimateMarketValueOutputSchema = z.object({
 export type EstimateMarketValueOutput = z.infer<typeof EstimateMarketValueOutputSchema>;
 
 export async function estimateMarketValue(input: EstimateMarketValueInput): Promise<EstimateMarketValueOutput> {
+  // Basic validation to ensure AI gets reasonable numbers, though Zod on client should handle most.
+  if (input.fruitBaseValue < 0) {
+    throw new Error("Fruit base value cannot be negative.");
+  }
+  for (const mutation of input.mutations) {
+    if (mutation.valueMultiplier < 0) {
+      throw new Error("Mutation value multiplier cannot be negative.");
+    }
+  }
   return estimateMarketValueFlow(input);
 }
 
@@ -47,7 +56,7 @@ The value of the fruit starts at its base value.
 Each mutation then modifies this value: the item's current value is multiplied directly by the mutation's value_multiplier.
 For example, if the base value is 100 and a first mutation has a value_multiplier of 2, the value becomes 100 * 2 = 200.
 If a second mutation has a value_multiplier of 0.5, the value then becomes 200 * 0.5 = 100.
-The total pre-market calculated value is thus the fruitBaseValue multiplied by the product of all mutation value_multipliers.
+The total pre-market calculated value is thus the fruitBaseValue multiplied by the product of all mutation value_multipliers. If a value_multiplier is 0, it makes the item worthless. If it's 1, it has no effect.
 
 Based on this information (fruit type, base value, and mutation details), determine the estimated fair market value of the item. Provide your reasoning, considering market dynamics, rarity, and desirability based on the fruit and its mutations.
 
@@ -78,3 +87,4 @@ const estimateMarketValueFlow = ai.defineFlow(
     return output!;
   }
 );
+
