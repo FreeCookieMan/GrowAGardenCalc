@@ -24,7 +24,7 @@ interface ValueInputFormProps {
 }
 
 export const fruitTypes = [
-  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1, themeColor: "hsla(28, 87%, 80%, 0.1)" },
+  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 20, baseMassKg: 0.1, themeColor: "hsla(28, 87%, 80%, 0.1)" },
   { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 14, baseMassKg: 0.02, themeColor: "hsla(0, 85%, 88%, 0.1)" },
   { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1, themeColor: "hsla(220, 75%, 88%, 0.1)" },
   { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 767, baseMassKg: 0.05, themeColor: "hsla(30, 90%, 82%, 0.1)" },
