@@ -21,7 +21,7 @@ import { Save } from "lucide-react";
 const environmentalMutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.number(), 
+  valueMultiplier: z.number(),
 });
 
 const calculationFormSchema = z.object({
@@ -44,7 +44,7 @@ const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static
 
 const initialCalculationData: CalculationData = {
   fruitType: "Apple",
-  basePrice: 248, // Updated base price for Apple
+  basePrice: 248, 
   massKg: 1,
   growthMutationType: "none",
   mutations: [initialEnvironmentalMutation],
@@ -59,11 +59,11 @@ export default function FruityMultiplierPage() {
     const { basePrice, massKg, growthMutationType, mutations: environmentalMutations } = data;
 
     if (isNaN(basePrice) || basePrice < 0 ||
-        isNaN(massKg) || massKg < 0) { 
+        isNaN(massKg) /* MassKg is still validated but not used in calculation */ ) {
       return 0;
     }
 
-    const massTerm = massKg; 
+    const massTerm = 1; // Mass (kg) no longer affects the calculation directly
     
     let growthMultiplierValue = 1;
     if (growthMutationType === "gold") growthMultiplierValue = 20;
