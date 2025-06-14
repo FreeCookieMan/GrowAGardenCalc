@@ -21,10 +21,7 @@ import { Save } from "lucide-react";
 const mutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  valueMultiplier: z.preprocess(
-    (val) => (String(val).trim() === "" ? NaN : Number(val)),
-    z.number({invalid_type_error: "Multiplier must be a number."}).min(0, "Multiplier must be non-negative.")
-  ),
+  valueMultiplier: z.number({invalid_type_error: "Multiplier must be a number."}).min(0, "Multiplier must be non-negative."),
 });
 
 const calculationFormSchema = z.object({
@@ -36,6 +33,7 @@ const calculationFormSchema = z.object({
   mutations: z.array(mutationSchema),
 });
 
+// Corresponds to "Wet" mutation with x2 multiplier
 const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
   fruitType: "Apple",
@@ -58,7 +56,7 @@ export default function FruityMultiplierPage() {
     mode: "onChange", 
   });
 
-  const { control, handleSubmit, watch, reset, formState } = formMethods;
+  const { control, handleSubmit, watch, reset, formState, getValues } = formMethods;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -66,27 +64,21 @@ export default function FruityMultiplierPage() {
   });
 
   const watchedFormValues = watch();
-  // Use a stringified version for the dependency array to prevent infinite loops
-  // with object/array references changing on every render.
   const watchedFormValuesString = JSON.stringify(watchedFormValues);
 
 
   useEffect(() => {
-    // Parse the string back to an object for processing
     const currentRawValues = JSON.parse(watchedFormValuesString);
-    
-    // Attempt to validate the raw values
     const validationResult = calculationFormSchema.safeParse(currentRawValues);
 
     if (validationResult.success) {
       const validData = validationResult.data;
-      let newTotal = validData.fruitBaseValue; // Start with base value
+      let newTotal = validData.fruitBaseValue; 
       if (Array.isArray(validData.mutations)) {
         for (const mutation of validData.mutations) {
-          newTotal *= mutation.valueMultiplier; // Direct multiplication
+          newTotal *= mutation.valueMultiplier; 
         }
       }
-      // Only update state if there's an actual change in calculated value or form data structure
       if (calculationState.realTimeTotalValue !== newTotal ||
           calculationState.fruitBaseValue !== validData.fruitBaseValue ||
           calculationState.fruitType !== validData.fruitType ||
@@ -95,28 +87,26 @@ export default function FruityMultiplierPage() {
         setCalculationState(prev => ({
           ...prev,
           realTimeTotalValue: newTotal,
-          fruitBaseValue: validData.fruitBaseValue, // Use validated numeric value
+          fruitBaseValue: validData.fruitBaseValue,
           fruitType: validData.fruitType,
-          mutations: validData.mutations.map(m => ({ // Use validated numeric values
+          mutations: validData.mutations.map(m => ({
             ...m,
             valueMultiplier: m.valueMultiplier,
           })),
         }));
       }
     } else {
-      // If validation fails, reflect current (potentially invalid) form values in state for display,
-      // and set total to 0.
       if (calculationState.realTimeTotalValue !== 0 ||
-          calculationState.fruitBaseValue !== (currentRawValues.fruitBaseValue as any) || // Keep as string if that's what user typed
+          calculationState.fruitBaseValue !== (currentRawValues.fruitBaseValue as any) || 
           calculationState.fruitType !== currentRawValues.fruitType ||
           JSON.stringify(calculationState.mutations) !== JSON.stringify(currentRawValues.mutations)
       ) {
         setCalculationState(prev => ({
           ...prev,
-          realTimeTotalValue: 0, // Invalid form means 0 value
-          fruitBaseValue: currentRawValues.fruitBaseValue as any, // Reflect user input
+          realTimeTotalValue: 0, 
+          fruitBaseValue: currentRawValues.fruitBaseValue as any,
           fruitType: currentRawValues.fruitType,
-          mutations: currentRawValues.mutations.map((m: any) => ({ // Reflect user input
+          mutations: currentRawValues.mutations.map((m: any) => ({ 
             id: m.id,
             type: m.type,
             valueMultiplier: m.valueMultiplier as any, 
@@ -125,7 +115,7 @@ export default function FruityMultiplierPage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); // Only re-run if the stringified form values change
+  }, [watchedFormValuesString]); 
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -135,16 +125,16 @@ export default function FruityMultiplierPage() {
   }, []);
 
   const handleEstimateMarketValue = async () => {
-    const currentData = formMethods.getValues(); 
+    const currentData = getValues(); 
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
       const input: EstimateMarketValueInput = {
-        fruitBaseValue: Number(currentData.fruitBaseValue), // Ensure number
+        fruitBaseValue: Number(currentData.fruitBaseValue),
         fruitType: currentData.fruitType,
         mutations: currentData.mutations.map(m => ({ 
           type: m.type, 
-          valueMultiplier: Number(m.valueMultiplier) // Ensure number
+          valueMultiplier: Number(m.valueMultiplier)
         })),
       };
       const result = await estimateMarketValue(input);
@@ -162,10 +152,6 @@ export default function FruityMultiplierPage() {
   };
 
   const onFormSubmitForEstimate = () => {
-    // This function is primarily for the form's onSubmit,
-    // but the button click for AI estimate now directly calls handleEstimateMarketValue
-    // after checking form validity.
-    // If called via form submission (e.g. pressing Enter), formState.isValid would have been checked by RHF.
     handleEstimateMarketValue();
   };
 
@@ -176,18 +162,17 @@ export default function FruityMultiplierPage() {
         description: "Please ensure all inputs are valid before saving.",
         variant: "destructive",
       });
-      // Trigger validation display if not already shown
       handleSubmit(() => {})() 
       return;
     }
     
-    const currentDataToSave = formMethods.getValues(); 
+    const currentDataToSave = getValues(); 
     const newSavedCalculation: SavedCalculation = {
       ...currentDataToSave,
-      fruitBaseValue: Number(currentDataToSave.fruitBaseValue), // Ensure number
+      fruitBaseValue: Number(currentDataToSave.fruitBaseValue),
       mutations: currentDataToSave.mutations.map(m => ({
         ...m,
-        valueMultiplier: Number(m.valueMultiplier) // Ensure number
+        valueMultiplier: Number(m.valueMultiplier)
       })),
       id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
       timestamp: Date.now(),
@@ -233,10 +218,10 @@ export default function FruityMultiplierPage() {
               <section className="lg:col-span-2 space-y-8">
                 <ValueInputForm
                   control={control}
-                  formState={formState}
                   fieldArray={{ fields, append, remove }}
                   onSubmitMarketValue={handleEstimateMarketValue} 
                   isEstimatingMarketValue={calculationState.isLoadingAiEstimate}
+                  formState={formState}
                 />
                 <MarketValueEstimator
                   aiEstimate={calculationState.aiEstimate}

@@ -194,16 +194,14 @@ export function ValueInputForm({
                 name={`mutations.${index}.valueMultiplier`}
                 render={({ field: inputField }) => (
                   <FormItem>
-                    <FormLabel>Value Multiplier (e.g., 1.5 for x1.5)</FormLabel>
+                    <FormLabel>Value Multiplier</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         placeholder="e.g., 1.5" 
                         {...inputField}
-                        onChange={event => inputField.onChange(event.target.value)} 
                         value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)} 
-                        min="0"
-                        step="0.01" 
+                        disabled // Made this field disabled
                       />
                     </FormControl>
                     <FormMessage />
