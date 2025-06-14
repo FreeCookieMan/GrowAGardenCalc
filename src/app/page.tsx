@@ -55,7 +55,7 @@ export default function FruityMultiplierPage() {
   const formMethods = useForm<CalculationData>({
     resolver: zodResolver(calculationFormSchema),
     defaultValues: initialCalculationData,
-    mode: "onChange", // Validate on change to update formState.isValid
+    mode: "onChange", 
   });
 
   const { control, handleSubmit, watch, reset, formState } = formMethods;
@@ -70,7 +70,6 @@ export default function FruityMultiplierPage() {
 
 
   useEffect(() => {
-    // watchedFormValues contains the raw values from the form, which might be strings for number inputs
     const currentRawValues = JSON.parse(watchedFormValuesString);
     
     const validationResult = calculationFormSchema.safeParse(currentRawValues);
@@ -83,7 +82,6 @@ export default function FruityMultiplierPage() {
           newTotal *= mutation.valueMultiplier;
         }
       }
-      // Only update if there's an actual change to avoid loops
       if (calculationState.realTimeTotalValue !== newTotal ||
           calculationState.fruitBaseValue !== validData.fruitBaseValue ||
           calculationState.fruitType !== validData.fruitType ||
@@ -98,9 +96,6 @@ export default function FruityMultiplierPage() {
         }));
       }
     } else {
-      // Form is invalid (e.g., empty number fields result in NaN after preprocess)
-      // Update realTimeTotalValue to 0 and reflect raw (potentially string) values in calculationState
-      // to keep form inputs populated with what the user typed.
       if (calculationState.realTimeTotalValue !== 0 ||
           calculationState.fruitBaseValue !== (currentRawValues.fruitBaseValue as any) ||
           calculationState.fruitType !== currentRawValues.fruitType ||
@@ -109,18 +104,18 @@ export default function FruityMultiplierPage() {
         setCalculationState(prev => ({
           ...prev,
           realTimeTotalValue: 0,
-          fruitBaseValue: currentRawValues.fruitBaseValue as any, // Keep raw string or number
+          fruitBaseValue: currentRawValues.fruitBaseValue as any, 
           fruitType: currentRawValues.fruitType,
           mutations: currentRawValues.mutations.map((m: any) => ({
             id: m.id,
             type: m.type,
-            valueMultiplier: m.valueMultiplier as any, // Keep raw string or number
+            valueMultiplier: m.valueMultiplier as any, 
           })),
         }));
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedFormValuesString]); // Zod schema is stable, formState is implicitly handled by re-render
+  }, [watchedFormValuesString]); 
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -130,15 +125,17 @@ export default function FruityMultiplierPage() {
   }, []);
 
   const handleEstimateMarketValue = async () => {
-    // We rely on formState.isValid being true, so data is already validated
-    const currentData = formMethods.getValues(); // Gets validated and transformed values if form is valid
+    const currentData = formMethods.getValues(); 
 
     setCalculationState(prev => ({ ...prev, isLoadingAiEstimate: true, aiError: null }));
     try {
       const input: EstimateMarketValueInput = {
-        fruitBaseValue: currentData.fruitBaseValue,
+        fruitBaseValue: Number(currentData.fruitBaseValue),
         fruitType: currentData.fruitType,
-        mutations: currentData.mutations.map(m => ({ type: m.type, valueMultiplier: m.valueMultiplier })),
+        mutations: currentData.mutations.map(m => ({ 
+          type: m.type, 
+          valueMultiplier: Number(m.valueMultiplier) 
+        })),
       };
       const result = await estimateMarketValue(input);
       setCalculationState(prev => ({ ...prev, aiEstimate: result, isLoadingAiEstimate: false }));
@@ -155,29 +152,29 @@ export default function FruityMultiplierPage() {
   };
 
   const onFormSubmitForEstimate = () => {
-    // This function is called by the form's onSubmit, which only fires if RHF validation passes.
-    // However, our button is also bound to onSubmitMarketValue, so we call it directly.
-    // The button itself is disabled if formState.isValid is false.
     handleEstimateMarketValue();
   };
 
   const saveCurrentCalculation = () => {
-    // Ensure data is valid using the latest form values.
-    // formState.isValid should be up-to-date due to mode: "onChange"
     if (!formState.isValid) {
       toast({
         title: "Cannot Save",
         description: "Please ensure all inputs are valid before saving.",
         variant: "destructive",
       });
-      // Trigger validation display if not already shown
       handleSubmit(() => {})() 
       return;
     }
     
-    const currentDataToSave = formMethods.getValues(); // Gets validated and transformed values
+    const currentDataToSave = formMethods.getValues(); 
     const newSavedCalculation: SavedCalculation = {
       ...currentDataToSave,
+      // Ensure numeric types for saving if they were strings from getValues()
+      fruitBaseValue: Number(currentDataToSave.fruitBaseValue),
+      mutations: currentDataToSave.mutations.map(m => ({
+        ...m,
+        valueMultiplier: Number(m.valueMultiplier)
+      })),
       id: "saved-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
       timestamp: Date.now(),
       realTimeTotalValue: calculationState.realTimeTotalValue, 
