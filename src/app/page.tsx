@@ -44,7 +44,7 @@ const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static
 
 const initialCalculationData: CalculationData = {
   fruitType: "Apple",
-  basePrice: 10, // Fixed base price for Apple
+  basePrice: 248, // Updated base price for Apple
   massKg: 1,
   growthMutationType: "none",
   mutations: [initialEnvironmentalMutation],
