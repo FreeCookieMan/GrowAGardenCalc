@@ -6,7 +6,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AppHeader } from "@/components/layout/app-header";
-import { ValueInputForm } from "@/components/multiplier/value-input-form";
+import { ValueInputForm, fruitTypes } from "@/components/multiplier/value-input-form";
 import { RealTimeCalculationDisplay } from "@/components/multiplier/real-time-calculation";
 import { MarketValueEstimator } from "@/components/multiplier/market-value-estimator";
 import { FruitsCatalog } from "@/components/multiplier/fruits-catalog";
@@ -47,12 +47,14 @@ const calculationFormSchema = z.object({
 
 const initialEnvironmentalMutation: EnvMutation = { id: "initial-mutation-static", type: "Wet", valueMultiplier: 2.0 };
 
-// Default fruit is Apple
+const defaultFruitType = "Apple";
+const defaultFruitData = fruitTypes.find(f => f.value === defaultFruitType) || fruitTypes[0];
+
 const initialCalculationData: CalculationData = {
-  fruitType: "Apple",
-  basePrice: 248, // Base price for Apple
+  fruitType: defaultFruitData.value,
+  basePrice: defaultFruitData.basePrice,
   massKg: 1,
-  baseMassKg: 0.15, // Base mass for Apple
+  baseMassKg: defaultFruitData.baseMassKg,
   growthMutationType: "none",
   mutations: [initialEnvironmentalMutation],
 };
@@ -97,6 +99,7 @@ export default function FruityMultiplierPage() {
   const [calculationState, setCalculationState] = useState<CalculationState>({
     ...initialCalculationData,
     realTimeTotalValue: calculateTotalValue(initialCalculationData),
+    selectedFruitThemeColor: defaultFruitData.themeColor,
     isLoadingAiEstimate: false,
     aiError: null,
   });
@@ -121,19 +124,22 @@ export default function FruityMultiplierPage() {
   useEffect(() => {
     const currentRawValues = JSON.parse(watchedFormValuesString);
     const validationResult = calculationFormSchema.safeParse(currentRawValues);
+    let newSelectedFruitThemeColor = calculationState.selectedFruitThemeColor;
 
     if (validationResult.success) {
       const validData = validationResult.data;
       const newTotal = calculateTotalValue(validData);
+      const selectedFruit = fruitTypes.find(f => f.value === validData.fruitType);
+      newSelectedFruitThemeColor = selectedFruit?.themeColor;
 
       setCalculationState(prev => ({
         ...prev,
         ...validData,
         realTimeTotalValue: newTotal,
+        selectedFruitThemeColor: newSelectedFruitThemeColor,
       }));
     } else {
-      setCalculationState(prev => ({
-        ...prev,
+      const partialValidData = {
         fruitType: currentRawValues.fruitType,
         basePrice: currentRawValues.basePrice as any,
         massKg: currentRawValues.massKg as any,
@@ -144,7 +150,15 @@ export default function FruityMultiplierPage() {
           type: m.type,
           valueMultiplier: m.valueMultiplier as any,
         })),
+      };
+      const selectedFruit = fruitTypes.find(f => f.value === partialValidData.fruitType);
+      newSelectedFruitThemeColor = selectedFruit?.themeColor;
+
+      setCalculationState(prev => ({
+        ...prev,
+        ...partialValidData,
         realTimeTotalValue: 0,
+        selectedFruitThemeColor: newSelectedFruitThemeColor,
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,11 +242,13 @@ export default function FruityMultiplierPage() {
 
   const loadCalculation = (calculationToLoad: CalculationData) => {
     reset(calculationToLoad);
+    const selectedFruit = fruitTypes.find(f => f.value === calculationToLoad.fruitType);
     setCalculationState(prev => ({
       ...prev,
       aiEstimate: undefined,
       aiError: null,
-      realTimeTotalValue: calculateTotalValue(calculationToLoad)
+      realTimeTotalValue: calculateTotalValue(calculationToLoad),
+      selectedFruitThemeColor: selectedFruit?.themeColor
     }));
     toast({
       title: "Calculation Loaded!",
@@ -248,8 +264,14 @@ export default function FruityMultiplierPage() {
     });
   };
 
+  const pageStyle: React.CSSProperties = {};
+  if (calculationState.selectedFruitThemeColor) {
+    pageStyle.background = `radial-gradient(ellipse at 50% 0%, ${calculationState.selectedFruitThemeColor} 0%, transparent 70%), hsl(var(--background))`;
+  }
+
+
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background transition-colors duration-500" style={pageStyle}>
       <AppHeader onOpenThemeCustomizer={() => setIsThemeModalOpen(true)} />
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
         <Form {...formMethods}>

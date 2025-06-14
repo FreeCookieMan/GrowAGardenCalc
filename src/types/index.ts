@@ -13,13 +13,14 @@ export interface CalculationData {
   fruitType: string;
   basePrice: number;
   massKg: number;
-  baseMassKg: number; // Added
+  baseMassKg: number;
   growthMutationType: GrowthMutationType;
   mutations: Mutation[];
 }
 
 export interface CalculationState extends CalculationData {
   realTimeTotalValue: number;
+  selectedFruitThemeColor?: string; 
   aiEstimate?: EstimateMarketValueOutput;
   isLoadingAiEstimate: boolean;
   aiError?: string | null;

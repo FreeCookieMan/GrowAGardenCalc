@@ -26,11 +26,13 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
   const [customColor, setCustomColor] = useState<string>("#ADDF6F"); // Default primary
 
   useEffect(() => {
-    // Initialize theme based on current document class or localStorage
     if (typeof window !== 'undefined') {
         const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
         setSelectedThemeOption(currentTheme);
-        // You could also load a saved 'custom' preference and its color here
+        const storedCustomColor = localStorage.getItem('customPrimaryColor');
+        if (storedCustomColor) {
+            setCustomColor(storedCustomColor);
+        }
     }
   }, []);
 
@@ -41,28 +43,28 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
     if (typeof window !== 'undefined') {
         if (newTheme === 'light') {
             document.documentElement.classList.remove('dark');
-            // localStorage.setItem('theme', 'light'); // Persist choice
+            localStorage.setItem('themePreference', 'light');
         } else if (newTheme === 'dark') {
             document.documentElement.classList.add('dark');
-            // localStorage.setItem('theme', 'dark'); // Persist choice
+            localStorage.setItem('themePreference', 'dark');
         }
-        // If 'custom' is selected, we don't change light/dark class here.
-        // The custom color application would handle that or be based on current light/dark.
     }
   };
 
   const handleApplyCustomColor = () => {
     if (selectedThemeOption === 'custom' && typeof window !== 'undefined') {
-      console.log("Applying custom primary color (HEX):", customColor);
-      // Actual application would involve updating CSS variables.
-      // This is a simplified example:
-      // document.documentElement.style.setProperty('--primary-hue', extractHue(customColor));
-      // document.documentElement.style.setProperty('--primary-saturation', extractSaturation(customColor));
-      // document.documentElement.style.setProperty('--primary-lightness', extractLightness(customColor));
-      // Or directly set: document.documentElement.style.setProperty('--primary', customColor);
-      // Needs more robust logic to update HSL variables in globals.css for full theme effect.
-      alert("Custom color application is experimental. Full theme update via CSS variables requires more setup.");
+      // This part is still experimental as full theme update is complex.
+      // For now, we'll just save the color preference.
+      localStorage.setItem('customPrimaryColor', customColor);
+      // To truly apply, you'd update CSS variables like:
+      // document.documentElement.style.setProperty('--primary', customColor);
+      // And convert HEX to HSL for other variables.
+      alert("Custom color preference saved. Full theme application is experimental and requires CSS variable updates.");
     }
+  };
+
+  const handleColorInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomColor(e.target.value);
   };
 
   return (
@@ -105,21 +107,28 @@ export function ThemeCustomizationModal({ isOpen, onOpenChange }: ThemeCustomiza
 
           {selectedThemeOption === 'custom' && (
             <div className="space-y-3 pl-6 pt-2 border-l ml-3">
-              <Label htmlFor="custom-color-input" className="font-medium">Primary Color (HEX)</Label>
-              <div className="flex items-center space-x-2">
+              <Label htmlFor="custom-color-text-input" className="font-medium">Primary Color (HEX)</Label>
+              <div className="flex items-center space-x-3">
                 <Input
-                  id="custom-color-input"
+                  id="custom-color-text-input"
                   type="text"
                   value={customColor}
-                  onChange={(e) => setCustomColor(e.target.value)}
+                  onChange={handleColorInputChange}
                   placeholder="#ADDF6F"
-                  className="w-full"
+                  className="flex-grow"
                 />
-                <Button onClick={handleApplyCustomColor} variant="outline" size="sm">Apply</Button>
+                <Input
+                  id="custom-color-wheel-input"
+                  type="color"
+                  value={customColor}
+                  onChange={handleColorInputChange}
+                  className="w-10 h-10 p-0 border-none rounded-md cursor-pointer"
+                  aria-label="Color picker"
+                />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Enter a HEX color code (e.g., #ADDF6F).
-                Note: Full theme integration requires updating HSL variables in CSS.
+              <Button onClick={handleApplyCustomColor} variant="outline" size="sm" className="mt-2">Apply Color</Button>
+              <p className="text-xs text-muted-foreground pt-1">
+                Note: Full theme integration requires updating HSL variables in CSS. This saves your preference.
               </p>
             </div>
           )}

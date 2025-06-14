@@ -23,28 +23,29 @@ interface ValueInputFormProps {
   isEstimatingMarketValue: boolean;
 }
 
-const fruitTypes = [
-  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 1 },
-  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 14, baseMassKg: 0.1 },
-  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1 },
-  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 767, baseMassKg: 1 },
-  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 27, baseMassKg: 0.3 },
-  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 36, baseMassKg: 0.3 },
-  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 903, baseMassKg: 0.1 },
-  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 2708, baseMassKg: 3.0 },
-  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3700, baseMassKg: 2.0 },
-  { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 248, baseMassKg: 1},
-  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3610, baseMassKg: 1 },
-  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 361, baseMassKg: 9 },
-  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3068, baseMassKg: 2 },
-  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 4287, baseMassKg: 9 },
-  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 5866, baseMassKg: 5 },
-  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 7085, baseMassKg: 3 },
-  { value: "Mushroom", label: "Mushroom", icon: <Sprout className="w-4 h-4 mr-2"/>, basePrice: 136278, baseMassKg: 10},
-  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 7220, baseMassKg: 1 },
-  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10830, baseMassKg: 5.28 },
-  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 25270, baseMassKg: 6 },
-  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 50000, baseMassKg: 9 }
+export const fruitTypes = [
+  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1, themeColor: "hsla(28, 87%, 80%, 0.1)" },
+  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 14, baseMassKg: 0.02, themeColor: "hsla(0, 85%, 88%, 0.1)" },
+  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1, themeColor: "hsla(220, 75%, 88%, 0.1)" },
+  { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 767, baseMassKg: 0.05, themeColor: "hsla(30, 90%, 82%, 0.1)" },
+  { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 27, baseMassKg: 0.15, themeColor: "hsla(5, 88%, 85%, 0.1)" },
+  { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 36, baseMassKg: 0.3, themeColor: "hsla(50, 95%, 85%, 0.12)" },
+  { value: "Daffodil", label: "Daffodil", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 903, baseMassKg: 0.05, themeColor: "hsla(55, 90%, 82%, 0.1)" },
+  { value: "Watermelon", label: "Watermelon", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 2708, baseMassKg: 3.0, themeColor: "hsla(135, 60%, 85%, 0.1)" },
+  { value: "Pumpkin", label: "Pumpkin", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3700, baseMassKg: 2.0, themeColor: "hsla(30, 90%, 82%, 0.1)" },
+  { value: "Apple", label: "Apple", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 248, baseMassKg: 0.15, themeColor: "hsla(90, 65%, 85%, 0.1)"},
+  { value: "Bamboo", label: "Bamboo", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3610, baseMassKg: 0.5, themeColor: "hsla(110, 55%, 85%, 0.1)" },
+  { value: "Coconut", label: "Coconut", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 361, baseMassKg: 0.8, themeColor: "hsla(35, 40%, 88%, 0.1)" },
+  { value: "Cactus", label: "Cactus", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 3068, baseMassKg: 0.5, themeColor: "hsla(100, 50%, 85%, 0.1)" },
+  { value: "Dragon Fruit", label: "Dragon Fruit", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 4287, baseMassKg: 0.3, themeColor: "hsla(320, 75%, 88%, 0.1)" },
+  { value: "Mango", label: "Mango", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 5866, baseMassKg: 0.2, themeColor: "hsla(40, 90%, 82%, 0.1)" },
+  { value: "Grape", label: "Grape", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 7085, baseMassKg: 0.3, themeColor: "hsla(270, 65%, 88%, 0.1)" },
+  { value: "Mushroom", label: "Mushroom", icon: <Sprout className="w-4 h-4 mr-2"/>, basePrice: 136278, baseMassKg: 0.05, themeColor: "hsla(30, 25%, 85%, 0.08)"},
+  { value: "Pepper", label: "Pepper", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 7220, baseMassKg: 0.1, themeColor: "hsla(0, 80%, 85%, 0.1)" },
+  { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10830, baseMassKg: 5.28, themeColor: "hsla(25, 55%, 82%, 0.1)" },
+  { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 25270, baseMassKg: 1.0, themeColor: "hsla(120, 60%, 80%, 0.1)" },
+  { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 50000, baseMassKg: 0.05, themeColor: "hsla(15, 90%, 80%, 0.12)" },
+  { value: "Sugar Apple", label: "Sugar Apple", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 0, baseMassKg: 0.2, themeColor: "hsla(100, 70%, 90%, 0.1)" }
 ];
 
 const growthMutationOptions: { value: GrowthMutationType; label: string; icon: JSX.Element, multiplier: number }[] = [
@@ -111,7 +112,7 @@ export function ValueInputForm({
                     const selectedFruit = fruitTypes.find(f => f.value === newType);
                     if (selectedFruit) {
                       setValue('basePrice', selectedFruit.basePrice);
-                      setValue('baseMassKg', selectedFruit.baseMassKg); // Set baseMassKg
+                      setValue('baseMassKg', selectedFruit.baseMassKg);
                     }
                   }}
                   defaultValue={String(field.value)}
@@ -175,15 +176,13 @@ export function ValueInputForm({
               </FormItem>
             )}
           />
-           {/* BaseMassKg is now derived, so no direct input field for it.
-               It's included in CalculationData via setValue when fruitType changes. */}
 
 
           <FormField
             control={control}
             name="growthMutationType"
             render={({ field }) => (
-              <FormItem className="md:col-span-2"> {/* Spans two columns if fewer items or for better layout */}
+              <FormItem className="md:col-span-2"> 
                 <FormLabel>Growth Mutation</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
