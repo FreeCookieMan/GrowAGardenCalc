@@ -14,13 +14,13 @@ import {z} from 'genkit';
 
 const MutationInputSchema = z.object({
   type: z.string().describe('The type of the mutation.'),
-  factor: z.number().describe('The factor by which this mutation influences the value, relative to the base fruit value. E.g., a factor of 0.5 means the mutation adds an additional 50% of the base fruit value.'),
+  factor: z.number().describe('The factor by which this mutation influences the value. A factor of 0.5 means a +50% modification to the current value.'),
 });
 
 const EstimateMarketValueInputSchema = z.object({
   fruitBaseValue: z.number().describe('The base value of the fruit.'),
   fruitType: z.string().describe('The type of fruit.'),
-  mutations: z.array(MutationInputSchema).describe('An array of mutations, each with a type and a factor. The total value is calculated as fruitBaseValue * (1 + sum of all mutation factors).'),
+  mutations: z.array(MutationInputSchema).describe('An array of mutations, each with a type and a factor. The total value is calculated by starting with the fruitBaseValue, and then for each mutation, multiplying the current value by (1 + mutation_factor).'),
 });
 export type EstimateMarketValueInput = z.infer<typeof EstimateMarketValueInputSchema>;
 
@@ -28,7 +28,7 @@ const EstimateMarketValueOutputSchema = z.object({
   estimatedMarketValue: z
     .number()
     .describe('The estimated fair market value of the item.'),
-  reasoning: z.string().describe('The AI reasoning behind the estimated value, considering the fruit type, base value, and the impact of its mutations.'),
+  reasoning: z.string().describe('The AI reasoning behind the estimated value, considering the fruit type, base value, and the compounding impact of its mutations.'),
 });
 export type EstimateMarketValueOutput = z.infer<typeof EstimateMarketValueOutputSchema>;
 
@@ -43,10 +43,11 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert in determining the fair market value of items based on their attributes.
 
 You will be given the base value of a fruit and a list of its mutations.
-The intrinsic value from the fruit itself is its base value.
-Each mutation provides an additional value equal to its 'factor' multiplied by the fruit's base value.
-For example, if the base value is 100 and a mutation has a factor of 0.5, that mutation contributes an additional (100 * 0.5) = 50 to the item's overall value.
-The total pre-market calculated value is the fruit's base value plus the sum of these additional values from all mutations (i.e., fruitBaseValue * (1 + sum of all factors)).
+The value of the fruit starts at its base value.
+Each mutation then modifies this value: the item's current value is multiplied by (1 + the mutation's factor).
+For example, if the base value is 100 and a first mutation has a factor of 0.5 (representing a +50% effect), the value becomes 100 * (1 + 0.5) = 150.
+If a second mutation has a factor of 0.2 (representing a +20% effect), the value then becomes 150 * (1 + 0.2) = 180.
+The total pre-market calculated value is thus the fruitBaseValue multiplied by the product of (1 + factor_i) for all mutations.
 
 Based on this information (fruit type, base value, and mutation details), determine the estimated fair market value of the item. Provide your reasoning, considering market dynamics, rarity, and desirability based on the fruit and its mutations.
 
@@ -56,7 +57,7 @@ Fruit Base Value: {{{fruitBaseValue}}}
 Mutations:
 {{#if mutations}}
   {{#each mutations}}
-  - Mutation Type: {{{this.type}}}, Factor: {{{this.factor}}}
+  - Mutation Type: {{{this.type}}}, Factor: {{{this.factor}}} (compounds as multiply by (1 + {{{this.factor}}}))
   {{/each}}
 {{else}}
   No mutations.

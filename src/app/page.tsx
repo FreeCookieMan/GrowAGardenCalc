@@ -21,21 +21,19 @@ import { Save } from "lucide-react";
 const mutationSchema = z.object({
   id: z.string(),
   type: z.string().min(1, "Type is required"),
-  factor: z.number().min(0, "Factor must be non-negative"), // Changed from value and amount
+  factor: z.number().min(0, "Factor must be non-negative"),
 });
 
 const calculationFormSchema = z.object({
   fruitBaseValue: z.number().min(0, "Must be non-negative"),
-  // fruitAmount: z.number().min(1, "Must be at least 1"), // Removed
   fruitType: z.string().min(1, "Type is required"),
   mutations: z.array(mutationSchema),
 });
 
 const initialCalculationData: CalculationData = {
   fruitBaseValue: 10,
-  // fruitAmount: 1, // Removed
   fruitType: "Apple",
-  mutations: [{ id: "initial-mutation-static", type: "Sparkle", factor: 0.5 }], // Changed to factor
+  mutations: [{ id: "initial-mutation-static", type: "Sparkle", factor: 0.5 }],
 };
 
 export default function FruityMultiplierPage() {
@@ -66,13 +64,14 @@ export default function FruityMultiplierPage() {
 
   useEffect(() => {
     const calculateRealTimeTotal = (data: CalculationData): number => {
-      let totalMultiplierEffect = 1; // Start with 1 for the base value itself
+      let value = data.fruitBaseValue || 0;
       if (Array.isArray(data.mutations)) {
         data.mutations.forEach(mutation => {
-          totalMultiplierEffect += (mutation.factor || 0);
+          // Each mutation factor (F) multiplies the current value by (1 + F)
+          value *= (1 + (mutation.factor || 0));
         });
       }
-      return (data.fruitBaseValue || 0) * totalMultiplierEffect;
+      return value;
     };
     
     let currentWatchedValues: Partial<CalculationData> = {};
@@ -88,7 +87,7 @@ export default function FruityMultiplierPage() {
         const dataToValidate: CalculationData = {
             fruitBaseValue: currentWatchedValues.fruitBaseValue ?? 0,
             fruitType: currentWatchedValues.fruitType ?? '',
-            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({...m, factor: m.factor ?? 0})) : [],
+            mutations: Array.isArray(currentWatchedValues.mutations) ? currentWatchedValues.mutations.map(m => ({id: m.id || `m-${Date.now()}-${Math.random()}`, type: m.type || '', factor: m.factor ?? 0})) : [],
         };
         const validationResult = calculationFormSchema.safeParse(dataToValidate);
 
@@ -129,7 +128,7 @@ export default function FruityMultiplierPage() {
             return prev;
         });
     }
-  }, [watchedFormValuesString, calculationFormSchema]);
+  }, [watchedFormValuesString]); // Removed calculationFormSchema as it's stable
 
   useEffect(() => {
     const loaded = localStorage.getItem("fruityMultiplierSaved");
@@ -174,7 +173,8 @@ export default function FruityMultiplierPage() {
         description: "Please ensure all inputs are valid before saving.",
         variant: "destructive",
       });
-      handleSubmit(() => {})(); 
+      // Trigger validation display
+      handleSubmit(() => {})()
       return;
     }
     
@@ -218,7 +218,7 @@ export default function FruityMultiplierPage() {
   const addMutation = () => {
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      factor: 0.1, // Default factor
+      factor: 0.1, 
       type: "Generic" 
     });
   };
