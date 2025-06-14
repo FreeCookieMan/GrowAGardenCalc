@@ -201,7 +201,7 @@ export function ValueInputForm({
                         placeholder="e.g., 1.5" 
                         {...inputField}
                         value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)} 
-                        disabled // Made this field disabled
+                        disabled 
                       />
                     </FormControl>
                     <FormMessage />
@@ -246,3 +246,4 @@ export function ValueInputForm({
     </Card>
   );
 }
+
