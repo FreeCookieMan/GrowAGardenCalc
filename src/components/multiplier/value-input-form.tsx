@@ -2,6 +2,7 @@
 "use client";
 
 import type { Control, FormState, UseFieldArrayReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,8 +16,6 @@ import {
   Sprout, 
   Bean, 
   Sparkles, 
-  Sun, 
-  Gem, 
   PlusCircle, 
   XCircle, 
   Calculator 
@@ -56,11 +55,26 @@ const fruitTypes = [
 ];
 
 const mutationTypes = [
-  { value: "Sparkle", label: "Sparkle", icon: <Sparkles className="w-4 h-4 mr-2" /> },
-  { value: "Glow", label: "Glow", icon: <Sun className="w-4 h-4 mr-2" /> },
-  { value: "Crystal", label: "Crystal", icon: <Gem className="w-4 h-4 mr-2" /> },
-  { value: "Generic", label: "Generic Mutation", icon: <Sparkles className="w-4 h-4 mr-2 text-muted-foreground" />},
+  { value: "Wet", label: "Wet", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+  { value: "Chilled", label: "Chilled", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+  { value: "Choc", label: "Choc", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+  { value: "Moonlit", label: "Moonlit", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 2 },
+  { value: "Pollinated", label: "Pollinated", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 3 },
+  { value: "Bloodlit", label: "Bloodlit", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 4 },
+  { value: "Plasma", label: "Plasma", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
+  { value: "HoneyGlazed", label: "HoneyGlazed", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
+  { value: "Heavenly", label: "Heavenly", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 5 },
+  { value: "Frozen", label: "Frozen", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 10 },
+  { value: "Golden", label: "Golden", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 20 },
+  { value: "Zombified", label: "Zombified", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 25 },
+  { value: "Rainbow", label: "Rainbow", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 50 },
+  { value: "Shocked", label: "Shocked", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 100 },
+  { value: "Celestial", label: "Celestial", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 120 },
+  { value: "Disco", label: "Disco", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 125 },
+  { value: "Voidtouched", label: "Voidtouched", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 135 },
+  { value: "Dawnbound", label: "Dawnbound", icon: <Sparkles className="w-4 h-4 mr-2" />, defaultMultiplier: 150 },
 ];
+
 
 export function ValueInputForm({
   control,
@@ -69,11 +83,14 @@ export function ValueInputForm({
   onSubmitMarketValue,
   isEstimatingMarketValue,
 }: ValueInputFormProps) {
+  const { setValue } = useFormContext<CalculationData>();
+
   const addMutationField = () => {
+    const defaultMutation = mutationTypes[0] || { value: "Wet", defaultMultiplier: 2.0 };
     append({ 
       id: "mutation-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9), 
-      valueMultiplier: 1.1, 
-      type: "Generic" 
+      type: defaultMutation.value, 
+      valueMultiplier: defaultMutation.defaultMultiplier 
     });
   };
 
@@ -122,8 +139,8 @@ export function ValueInputForm({
                     type="number"
                     placeholder="e.g., 10"
                     {...field}
-                    onChange={event => field.onChange(event.target.value)} // Pass raw string
-                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)} // Handle NaN for display
+                    onChange={event => field.onChange(event.target.value)} 
+                    value={field.value === null || field.value === undefined || (typeof field.value === 'number' && isNaN(field.value)) ? '' : String(field.value)} 
                     min="0"
                   />
                 </FormControl>
@@ -144,7 +161,16 @@ export function ValueInputForm({
                 render={({ field: selectField }) => (
                   <FormItem>
                     <FormLabel>Mutation Type</FormLabel>
-                     <Select onValueChange={selectField.onChange} defaultValue={String(selectField.value)}>
+                     <Select 
+                        onValueChange={(newType) => {
+                          selectField.onChange(newType);
+                          const selectedMutation = mutationTypes.find(m => m.value === newType);
+                          if (selectedMutation) {
+                            setValue(`mutations.${index}.valueMultiplier`, selectedMutation.defaultMultiplier);
+                          }
+                        }} 
+                        defaultValue={String(selectField.value)}
+                      >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select mutation type" />
@@ -174,8 +200,8 @@ export function ValueInputForm({
                         type="number"
                         placeholder="e.g., 1.5" 
                         {...inputField}
-                        onChange={event => inputField.onChange(event.target.value)} // Pass raw string
-                        value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)} // Handle NaN for display
+                        onChange={event => inputField.onChange(event.target.value)} 
+                        value={inputField.value === null || inputField.value === undefined || (typeof inputField.value === 'number' && isNaN(inputField.value)) ? '' : String(inputField.value)} 
                         min="0"
                         step="0.01" 
                       />
