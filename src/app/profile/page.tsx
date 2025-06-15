@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/firebase/client";
-import { updateProfile, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { updateProfile, updateEmail, updatePassword } from "firebase/auth";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { UserCircle, Mail, Lock, Edit3, ShieldAlert, Eye, EyeOff } from "lucide-react";
@@ -53,14 +53,14 @@ export default function ProfilePage() {
   const displayNameForm = useForm<DisplayNameFormValues>({
     resolver: zodResolver(displayNameSchema),
     defaultValues: {
-      displayName: user?.displayName || "",
+      displayName: "", // Initialize with empty, useEffect will populate
     },
   });
 
   const emailForm = useForm<EmailFormValues>({
     resolver: zodResolver(emailSchema),
     defaultValues: {
-      newEmail: user?.email || "",
+      newEmail: "", // Initialize with empty, useEffect will populate
     },
   });
 
@@ -71,6 +71,18 @@ export default function ProfilePage() {
       confirmNewPassword: "",
     },
   });
+
+  useEffect(() => {
+    if (user) {
+      displayNameForm.reset({ displayName: user.displayName || "" });
+    }
+  }, [user, user?.displayName, displayNameForm.reset]);
+
+  useEffect(() => {
+    if (user) {
+      emailForm.reset({ newEmail: user.email || "" });
+    }
+  }, [user, user?.email, emailForm.reset]);
 
   if (authLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading profile...</div>;
@@ -104,7 +116,7 @@ export default function ProfilePage() {
     try {
       await updateProfile(auth.currentUser, { displayName: data.displayName });
       toast({ title: "Display Name Updated", description: "Your display name has been successfully updated." });
-      // Optionally, refresh user state or force re-render if display name is shown elsewhere reactively
+      // user object in context will update, and useEffect will reset the form
     } catch (error: any) {
       handleUpdateError(error, "Display Name");
     } finally {
@@ -118,7 +130,7 @@ export default function ProfilePage() {
     try {
       await updateEmail(auth.currentUser, data.newEmail);
       toast({ title: "Email Updated", description: "Your email address has been successfully updated. You may need to re-verify your new email." });
-      emailForm.reset({ newEmail: data.newEmail });
+      // user object in context will update, and useEffect will reset the form
     } catch (error: any) {
       handleUpdateError(error, "Email");
     } finally {
@@ -140,15 +152,6 @@ export default function ProfilePage() {
     }
   };
   
-  // Update defaultValues when user changes
-  if (user && user.displayName !== displayNameForm.getValues("displayName")) {
-    displayNameForm.reset({ displayName: user.displayName || "" });
-  }
-  if (user && user.email !== emailForm.getValues("newEmail")) {
-    emailForm.reset({ newEmail: user.email || ""});
-  }
-
-
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-3xl">
       <header className="mb-8 text-center">
@@ -318,5 +321,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
