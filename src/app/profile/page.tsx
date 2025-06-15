@@ -112,7 +112,11 @@ export default function ProfilePage() {
         break;
       case "auth/operation-not-allowed":
         if (action === "Email") {
-          errorMessage = `Could not update email. Your current email may need to be verified, or your Firebase project's security settings might be preventing this change. Firebase error: ${error.message}`;
+          if (error.message && error.message.includes("Please verify the new email before changing email")) {
+            errorMessage = `Could not update email. Firebase requires the new email to be verified as part of the change process. Please check your Firebase project's Authentication -> Settings -> 'User actions' for specific email change policies. Firebase error: ${error.message}`;
+          } else {
+            errorMessage = `Could not update email. Your current email may need to be verified, or your Firebase project's security settings (Authentication -> Settings -> 'User actions') might be preventing this change. Firebase error: ${error.message}`;
+          }
         } else if (action === "Password") {
            errorMessage = `Could not update password. This may be due to project security settings. Firebase error: ${error.message}`;
         } else {
@@ -281,9 +285,14 @@ export default function ProfilePage() {
         <CardContent>
           <Alert variant="default" className="mb-6 border-primary/50 bg-primary/5">
             <ShieldAlert className="h-5 w-5 text-primary" />
-            <AlertTitle className="text-primary">Security Notice</AlertTitle>
+            <AlertTitle className="text-primary">Security Notice & Troubleshooting</AlertTitle>
             <AlertDescription>
-              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first. If issues persist (e.g., 'operation-not-allowed' errors), please check your Firebase project's Authentication settings under 'User actions' as specific project policies might be affecting this.
+              Changing your email address is a sensitive operation. You will need to verify your new email address.
+              If your current email is unverified, you must verify it first.
+              If you encounter an 'operation-not-allowed' error (especially one mentioning 'Please verify the new email'),
+              it likely means your Firebase project has specific security policies for email changes.
+              Please check your Firebase project's Authentication settings, particularly under the 'Settings' tab and 'User actions' section,
+              to ensure email changes are permitted and configured as expected.
             </AlertDescription>
           </Alert>
           <Form {...emailForm}>
@@ -395,5 +404,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
