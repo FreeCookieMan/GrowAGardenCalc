@@ -15,7 +15,8 @@ import { auth } from "@/lib/firebase/client";
 import { updateProfile, updateEmail, updatePassword, sendEmailVerification } from "firebase/auth";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
-import { UserCircle, Mail, Lock, Edit3, ShieldAlert, Eye, EyeOff, Send } from "lucide-react";
+import Link from "next/link";
+import { UserCircle, Mail, Lock, Edit3, ShieldAlert, Eye, EyeOff, Send, HomeIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -113,7 +114,7 @@ export default function ProfilePage() {
       case "auth/operation-not-allowed":
         if (action === "Email") {
           if (error.message && error.message.includes("Please verify the new email before changing email")) {
-            errorMessage = `Could not update email. Firebase requires the new email to be verified as part of the change process. Please check your Firebase project's Authentication -> Settings -> 'User actions' for specific email change policies. Firebase error: ${error.message}`;
+             errorMessage = `Could not update email. Firebase requires the new email to be verified as part of the change process. Please check your Firebase project's Authentication -> Settings -> 'User actions' for specific email change policies. Firebase error: ${error.message}`;
           } else {
             errorMessage = `Could not update email. Your current email may need to be verified, or your Firebase project's security settings (Authentication -> Settings -> 'User actions') might be preventing this change. Firebase error: ${error.message}`;
           }
@@ -213,13 +214,21 @@ export default function ProfilePage() {
   
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-3xl">
-      <header className="mb-8 text-center">
+      <header className="mb-6 text-center">
         <h1 className="text-4xl font-bold flex items-center justify-center text-primary">
           <UserCircle className="w-10 h-10 mr-3" />
           Your Profile
         </h1>
         <p className="text-muted-foreground mt-2">Manage your account settings and personal information.</p>
       </header>
+      <div className="mb-8 flex justify-center">
+        <Button asChild variant="outline">
+          <Link href="/">
+            <HomeIcon className="w-4 h-4 mr-2" />
+            Return to Home
+          </Link>
+        </Button>
+      </div>
 
       {!user.emailVerified && (
         <Alert variant="default" className="mb-6 border-yellow-500/50 bg-yellow-500/5 text-yellow-700 dark:text-yellow-400">
@@ -404,3 +413,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
