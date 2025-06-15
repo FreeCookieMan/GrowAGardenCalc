@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Package2, Settings, LogOut, UserCircle, LogIn, UserPlus } from 'lucide-react';
+import { Package2, Settings, LogOut, UserCircle, LogIn, UserPlus, Edit3 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,7 @@ export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
     try {
       await signOut(auth);
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      router.push("/"); // or router.push("/login")
+      router.push("/login"); 
     } catch (error) {
       console.error("Logout error", error);
       toast({ title: "Logout Failed", description: "Could not log out. Please try again.", variant: "destructive" });
@@ -41,7 +41,7 @@ export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        <Link href="/" className="mr-auto flex items-center"> {/* Changed mr-4 to mr-auto and wrapped in Link */}
+        <Link href="/" className="mr-auto flex items-center">
           <Package2 className="h-6 w-6 mr-2 text-primary" />
           <span className="font-bold text-lg font-headline">Grow a Garden Value Calculator</span>
         </Link>
@@ -58,18 +58,17 @@ export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuItem disabled>
-                  {user.email}
+                  {user.displayName || user.email}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                 <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  Edit Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={onOpenThemeCustomizer}>
                   <Settings className="mr-2 h-4 w-4" />
                   Customize Theme
                 </DropdownMenuItem>
-                {/* Add Profile link here when ready */}
-                {/* <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive/90">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -111,3 +110,5 @@ export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
     </header>
   );
 }
+
+    
