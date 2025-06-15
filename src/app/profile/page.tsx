@@ -112,7 +112,7 @@ export default function ProfilePage() {
         break;
       case "auth/operation-not-allowed":
         if (action === "Email") {
-          errorMessage = `Could not update email. This might be because your current email is not verified, or due to project security settings preventing this change. Firebase error: ${error.message}`;
+          errorMessage = `Could not update email. Your current email may need to be verified, or your Firebase project's security settings might be preventing this change. Firebase error: ${error.message}`;
         } else if (action === "Password") {
            errorMessage = `Could not update password. This may be due to project security settings. Firebase error: ${error.message}`;
         } else {
@@ -123,7 +123,7 @@ export default function ProfilePage() {
         errorMessage = `An unexpected error occurred: ${error.message}. Please try again.`;
     }
     toast({
-      title: `${action} Failed`,
+      title: `${action} Update Failed`,
       description: errorMessage,
       variant: "destructive",
     });
@@ -175,7 +175,7 @@ export default function ProfilePage() {
       await updatePassword(auth.currentUser, data.newPassword);
       toast({ title: "Password Updated", description: "Your password has been successfully updated." });
       passwordForm.reset();
-    } catch (error: any) {
+    } catch (error: any)
       handleUpdateError(error, "Password");
     } finally {
       setIsPasswordLoading(false);
@@ -283,7 +283,7 @@ export default function ProfilePage() {
             <ShieldAlert className="h-5 w-5 text-primary" />
             <AlertTitle className="text-primary">Security Notice</AlertTitle>
             <AlertDescription>
-              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first.
+              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first. If issues persist, check your Firebase project settings.
             </AlertDescription>
           </Alert>
           <Form {...emailForm}>
@@ -396,3 +396,4 @@ export default function ProfilePage() {
   );
 }
 
+    
