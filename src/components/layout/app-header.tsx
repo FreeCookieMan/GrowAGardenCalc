@@ -110,5 +110,3 @@ export function AppHeader({ onOpenThemeCustomizer }: AppHeaderProps) {
     </header>
   );
 }
-
-    
