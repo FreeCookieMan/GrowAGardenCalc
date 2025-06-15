@@ -12,10 +12,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/firebase/client";
-import { updateProfile, updateEmail, updatePassword } from "firebase/auth";
+import { updateProfile, updateEmail, updatePassword, sendEmailVerification } from "firebase/auth";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
-import { UserCircle, Mail, Lock, Edit3, ShieldAlert, Eye, EyeOff } from "lucide-react";
+import { UserCircle, Mail, Lock, Edit3, ShieldAlert, Eye, EyeOff, Send } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -49,18 +49,19 @@ export default function ProfilePage() {
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
 
   const displayNameForm = useForm<DisplayNameFormValues>({
     resolver: zodResolver(displayNameSchema),
     defaultValues: {
-      displayName: "", // Initialize with empty, useEffect will populate
+      displayName: "",
     },
   });
 
   const emailForm = useForm<EmailFormValues>({
     resolver: zodResolver(emailSchema),
     defaultValues: {
-      newEmail: "", // Initialize with empty, useEffect will populate
+      newEmail: "",
     },
   });
 
@@ -102,6 +103,14 @@ export default function ProfilePage() {
       errorMessage = "This email address is already in use by another account.";
     } else if (error.code === "auth/weak-password") {
       errorMessage = "The new password is too weak.";
+    } else if (error.code === "auth/operation-not-allowed") {
+      if (action === "Email") {
+        errorMessage = `Could not update email. This might be because your current email is not verified, or due to project security settings preventing this change. Firebase error: ${error.message}`;
+      } else if (action === "Password") {
+         errorMessage = `Could not update password. This may be due to project security settings. Firebase error: ${error.message}`;
+      } else {
+        errorMessage = `This operation is not allowed. Firebase error: ${error.message}`;
+      }
     }
     toast({
       title: `${action} Failed`,
@@ -116,7 +125,6 @@ export default function ProfilePage() {
     try {
       await updateProfile(auth.currentUser, { displayName: data.displayName });
       toast({ title: "Display Name Updated", description: "Your display name has been successfully updated." });
-      // user object in context will update, and useEffect will reset the form
     } catch (error: any) {
       handleUpdateError(error, "Display Name");
     } finally {
@@ -126,11 +134,24 @@ export default function ProfilePage() {
 
   const onEmailSubmit = async (data: EmailFormValues) => {
     if (!auth.currentUser) return;
+
+    if (!auth.currentUser.emailVerified) {
+      toast({
+        title: "Current Email Not Verified",
+        description: "Please verify your current email address before attempting to change it. You can resend a verification email from this page.",
+        variant: "destructive",
+      });
+      setIsEmailLoading(false);
+      return;
+    }
+
     setIsEmailLoading(true);
     try {
       await updateEmail(auth.currentUser, data.newEmail);
-      toast({ title: "Email Updated", description: "Your email address has been successfully updated. You may need to re-verify your new email." });
-      // user object in context will update, and useEffect will reset the form
+      toast({ 
+        title: "Verification Sent to New Email", 
+        description: "A verification link has been sent to your new email address. Please click the link in that email to finalize the change." 
+      });
     } catch (error: any) {
       handleUpdateError(error, "Email");
     } finally {
@@ -151,6 +172,31 @@ export default function ProfilePage() {
       setIsPasswordLoading(false);
     }
   };
+
+  const handleResendVerificationEmail = async () => {
+    if (!auth.currentUser) return;
+    setIsSendingVerification(true);
+    try {
+      await sendEmailVerification(auth.currentUser);
+      toast({
+        title: "Verification Email Sent",
+        description: `A new verification email has been sent to ${auth.currentUser.email}. Please check your inbox.`,
+      });
+    } catch (error: any) {
+      console.error("Resend verification email error", error);
+      let errorMessage = "Could not send verification email. Please try again later.";
+      if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many requests. Please wait a while before trying to resend the verification email.";
+      }
+      toast({
+        title: "Verification Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingVerification(false);
+    }
+  };
   
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-3xl">
@@ -161,6 +207,25 @@ export default function ProfilePage() {
         </h1>
         <p className="text-muted-foreground mt-2">Manage your account settings and personal information.</p>
       </header>
+
+      {!user.emailVerified && (
+        <Alert variant="default" className="mb-6 border-yellow-500/50 bg-yellow-500/5 text-yellow-700 dark:text-yellow-400">
+          <ShieldAlert className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+          <AlertTitle className="text-yellow-700 dark:text-yellow-500">Email Not Verified</AlertTitle>
+          <AlertDescription>
+            Your current email address ({user.email}) is not verified. Some actions, like changing your email, may be restricted.
+            <Button
+              variant="link"
+              onClick={handleResendVerificationEmail}
+              disabled={isSendingVerification}
+              className="p-0 h-auto ml-1 text-yellow-700 dark:text-yellow-400 hover:underline"
+            >
+              {isSendingVerification ? "Sending..." : "Resend verification email"}
+              {!isSendingVerification && <Send className="w-3 h-3 ml-1" />}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card className="mb-8 shadow-xl">
         <CardHeader>
@@ -209,7 +274,7 @@ export default function ProfilePage() {
             <ShieldAlert className="h-5 w-5 text-primary" />
             <AlertTitle className="text-primary">Security Notice</AlertTitle>
             <AlertDescription>
-              Changing your email address is a sensitive operation and may require you to re-authenticate.
+              Changing your email address is a sensitive operation. You will need to verify your new email address.
             </AlertDescription>
           </Alert>
           <Form {...emailForm}>
@@ -321,3 +386,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
