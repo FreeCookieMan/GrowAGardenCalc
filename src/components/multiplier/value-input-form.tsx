@@ -24,9 +24,9 @@ interface ValueInputFormProps {
 }
 
 export const fruitTypes = [
-  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 20, baseMassKg: 0.1, themeColor: "hsla(28, 87%, 80%, 0.1)" },
-  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 14, baseMassKg: 0.02, themeColor: "hsla(0, 85%, 88%, 0.1)" },
-  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 18, baseMassKg: 0.1, themeColor: "hsla(220, 75%, 88%, 0.1)" },
+  { value: "Carrot", label: "Carrot", icon: <Carrot className="w-4 h-4 mr-2" />, basePrice: 10, baseMassKg: 0.1, themeColor: "hsla(28, 87%, 80%, 0.1)" },
+  { value: "Strawberry", label: "Strawberry", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 50, baseMassKg: 0.02, themeColor: "hsla(0, 85%, 88%, 0.1)" },
+  { value: "Blueberry", label: "Blueberry", icon: <Grape className="w-4 h-4 mr-2" />, basePrice: 400, baseMassKg: 0.1, themeColor: "hsla(220, 75%, 88%, 0.1)" },
   { value: "Orange Tulip", label: "Orange Tulip", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 767, baseMassKg: 0.05, themeColor: "hsla(30, 90%, 82%, 0.1)" },
   { value: "Tomato", label: "Tomato", icon: <Apple className="w-4 h-4 mr-2" />, basePrice: 27, baseMassKg: 0.15, themeColor: "hsla(5, 88%, 85%, 0.1)" },
   { value: "Corn", label: "Corn", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 36, baseMassKg: 0.3, themeColor: "hsla(50, 95%, 85%, 0.12)" },
@@ -45,6 +45,7 @@ export const fruitTypes = [
   { value: "Cacao", label: "Cacao", icon: <Bean className="w-4 h-4 mr-2" />, basePrice: 10830, baseMassKg: 5.28, themeColor: "hsla(25, 55%, 82%, 0.1)" },
   { value: "Beanstalk", label: "Beanstalk", icon: <Sprout className="w-4 h-4 mr-2" />, basePrice: 25270, baseMassKg: 1.0, themeColor: "hsla(120, 60%, 80%, 0.1)" },
   { value: "Ember Lily", label: "Ember Lily", icon: <Flower2 className="w-4 h-4 mr-2" />, basePrice: 50000, baseMassKg: 0.05, themeColor: "hsla(15, 90%, 80%, 0.12)" },
+  { value: "Sugar Apple", label: "Sugar Apple", icon: <Leaf className="w-4 h-4 mr-2" />, basePrice: 0, baseMassKg: 0.2, themeColor: "hsla(100, 50%, 88%, 0.1)" },
 ];
 
 const growthMutationOptions: { value: GrowthMutationType; label: string; icon: JSX.Element, multiplier: number }[] = [
@@ -317,3 +318,5 @@ export function ValueInputForm({
     </Card>
   );
 }
+
+    

@@ -28,7 +28,8 @@ const fruits = [
   { name: "Cacao", icon: <Bean className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "cacao bean" },
   { name: "Beanstalk", icon: <Sprout className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "beanstalk green"},
   { name: "Ember Lily", icon: <Flower2 className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "lily flower" },
-  { name: "Mushroom", icon: <Sprout className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "mushroom fungi" }
+  { name: "Mushroom", icon: <Sprout className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "mushroom fungi" },
+  { name: "Sugar Apple", icon: <Leaf className="w-10 h-10 text-primary" />, image: "https://placehold.co/100x100.png", hint: "sugar apple" },
 ];
 
 export function FruitsCatalog() {
@@ -62,3 +63,5 @@ export function FruitsCatalog() {
     </Card>
   );
 }
+
+    
