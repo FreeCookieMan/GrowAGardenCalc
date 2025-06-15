@@ -74,23 +74,22 @@ export default function LoginPage() {
 
       if (error.code === 'auth/popup-closed-by-user') {
         toast({
-          title: "Google Sign-In Cancelled",
-          description: "You closed the Google Sign-In window before completing the process, or it was closed unexpectedly. If this was unexpected, check for browser popup blockers or console errors.",
+          title: "Google Sign-In Cancelled or Interrupted",
+          description: "The Google Sign-In window was closed. If you didn't close it, your browser, an extension, or the current environment (like Cloud Workstations) might be blocking or closing the popup. Check for popup blockers or console errors.",
         });
       } else if (error.code === 'auth/popup-blocked') {
          toast({
-          title: "Google Sign-In Failed",
-          description: "Google Sign-In popup was blocked by the browser. Please allow popups for this site.",
+          title: "Google Sign-In Failed: Popup Blocked",
+          description: "Google Sign-In popup was blocked by the browser. Please allow popups for this site and try again.",
           variant: "destructive",
         });
       } else if (error.code === 'auth/unauthorized-domain') {
          toast({
-          title: "Google Sign-In Failed",
-          description: "This domain is not authorized for Google Sign-In. Please contact the site administrator.",
+          title: "Google Sign-In Failed: Unauthorized Domain",
+          description: "This domain is not authorized for Google Sign-In. Please ensure this domain is added to the 'Authorized domains' list in your Firebase project's Authentication settings.",
           variant: "destructive",
         });
-      }
-       else {
+      } else {
         let errorMessage = "An unexpected error occurred with Google Sign-In.";
         if (error.code === 'auth/account-exists-with-different-credential') {
           errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with a different method.";
