@@ -175,7 +175,7 @@ export default function ProfilePage() {
       await updatePassword(auth.currentUser, data.newPassword);
       toast({ title: "Password Updated", description: "Your password has been successfully updated." });
       passwordForm.reset();
-    } catch (error: any)
+    } catch (error: any) {
       handleUpdateError(error, "Password");
     } finally {
       setIsPasswordLoading(false);
@@ -395,5 +395,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
 
     
