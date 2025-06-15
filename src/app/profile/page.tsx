@@ -114,7 +114,7 @@ export default function ProfilePage() {
       case "auth/operation-not-allowed":
         if (action === "Email") {
           if (error.message && error.message.includes("Please verify the new email before changing email")) {
-             errorMessage = `Could not update email. Firebase requires the new email to be verified as part of the change process. Please check your Firebase project's Authentication -> Settings -> 'User actions' for specific email change policies. Firebase error: ${error.message}`;
+             errorMessage = `Could not update email. Firebase policy requires the new email to be verified. Please ensure your Firebase project's email change settings (Authentication -> Settings -> 'User actions') are configured as expected. Firebase error: ${error.message}`;
           } else {
             errorMessage = `Could not update email. Your current email may need to be verified, or your Firebase project's security settings (Authentication -> Settings -> 'User actions') might be preventing this change. Firebase error: ${error.message}`;
           }
@@ -294,14 +294,9 @@ export default function ProfilePage() {
         <CardContent>
           <Alert variant="default" className="mb-6 border-primary/50 bg-primary/5">
             <ShieldAlert className="h-5 w-5 text-primary" />
-            <AlertTitle className="text-primary">Security Notice & Troubleshooting</AlertTitle>
+            <AlertTitle className="text-primary">Important Note</AlertTitle>
             <AlertDescription>
-              Changing your email address is a sensitive operation. You will need to verify your new email address.
-              If your current email is unverified, you must verify it first.
-              If you encounter an 'operation-not-allowed' error (especially one mentioning 'Please verify the new email before changing email' or similar),
-              it likely means your Firebase project has specific security policies for email changes.
-              Please check your Firebase project's Authentication settings, particularly under the 'Settings' tab and 'User actions' section,
-              to ensure email changes are permitted and configured as expected. This section also handles re-authentication requirements.
+              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first.
             </AlertDescription>
           </Alert>
           <Form {...emailForm}>
@@ -340,9 +335,9 @@ export default function ProfilePage() {
         <CardContent>
           <Alert variant="default" className="mb-6 border-primary/50 bg-primary/5">
             <ShieldAlert className="h-5 w-5 text-primary" />
-            <AlertTitle className="text-primary">Security Notice</AlertTitle>
+            <AlertTitle className="text-primary">Important Note</AlertTitle>
             <AlertDescription>
-              Changing your password is a sensitive operation and may require you to re-authenticate if you haven't logged in recently.
+              Changing your password is a sensitive operation and may require you to re-authenticate if you haven&apos;t logged in recently.
             </AlertDescription>
           </Alert>
           <Form {...passwordForm}>
@@ -413,4 +408,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

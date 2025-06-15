@@ -12,10 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/firebase/client";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, Chrome } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -43,7 +45,7 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({ title: "Login Successful", description: "Welcome back!" });
-      router.push("/"); // Redirect to home page or dashboard
+      router.push("/"); 
     } catch (error: any) {
       console.error("Login error", error);
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -60,6 +62,33 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast({ title: "Google Sign-In Successful", description: "Welcome!" });
+      router.push("/");
+    } catch (error: any) {
+      console.error("Google Sign-In error", error);
+      let errorMessage = "An unexpected error occurred with Google Sign-In.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Google Sign-In cancelled.";
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with a different method.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Google Sign-In popup was blocked by the browser. Please allow popups for this site.";
+      }
+      toast({
+        title: "Google Sign-In Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md shadow-2xl">
@@ -68,7 +97,7 @@ export default function LoginPage() {
             <LogIn className="w-8 h-8 mr-2 text-primary" />
             Login
           </CardTitle>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
+          <CardDescription>Enter your credentials or use a social provider.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -114,11 +143,25 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+              <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+                {isLoading ? "Logging in..." : "Login with Email"}
               </Button>
             </form>
           </Form>
+          <div className="my-6 flex items-center">
+            <Separator className="flex-grow" />
+            <span className="mx-4 text-xs text-muted-foreground">OR</span>
+            <Separator className="flex-grow" />
+          </div>
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleGoogleSignIn}
+            disabled={isLoading || isGoogleLoading}
+          >
+            <Chrome className="w-5 h-5 mr-2" /> 
+            {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
+          </Button>
         </CardContent>
         <CardFooter className="text-center text-sm">
           <p className="w-full">
