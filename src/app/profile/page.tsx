@@ -141,7 +141,6 @@ export default function ProfilePage() {
         description: "Please verify your current email address before attempting to change it. You can resend a verification email from this page.",
         variant: "destructive",
       });
-      setIsEmailLoading(false);
       return;
     }
 
@@ -274,7 +273,7 @@ export default function ProfilePage() {
             <ShieldAlert className="h-5 w-5 text-primary" />
             <AlertTitle className="text-primary">Security Notice</AlertTitle>
             <AlertDescription>
-              Changing your email address is a sensitive operation. You will need to verify your new email address.
+              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first.
             </AlertDescription>
           </Alert>
           <Form {...emailForm}>
