@@ -19,24 +19,26 @@ if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
   } catch (error) {
-    console.error("Firebase initialization error", error);
+    console.error("Firebase initialization error:", error);
+    console.warn(
+        "Firebase initialization failed. This often means your Firebase project configuration in .env.local is missing, incomplete, or incorrect. " +
+        "Please ensure all NEXT_PUBLIC_FIREBASE_... variables (API_KEY, AUTH_DOMAIN, PROJECT_ID, etc.) are correctly set in your .env.local file and that you have restarted your development server."
+    );
     // Fallback to a mock/dummy app if initialization fails
-    // This is primarily for environments where env vars might not be set (like some test runners or Storybook)
-    // but in a real app, you'd want to ensure Firebase initializes correctly.
     app = {
         name: 'mock',
         options: {},
         automaticDataCollectionEnabled: false,
         toJSON: () => ({})
-    } as unknown as FirebaseApp; // Type assertion for mock
+    } as unknown as FirebaseApp; 
     auth = {
         currentUser: null,
         onAuthStateChanged: () => (() => {}),
-        // Add other mock methods as needed if used directly before proper init
-    } as unknown as Auth; // Type assertion for mock
+    } as unknown as Auth; 
+
      if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
       console.warn(
-        "Firebase API key is missing. Please check your .env.local file and ensure NEXT_PUBLIC_FIREBASE_API_KEY is set."
+        "Specifically, the Firebase API key (NEXT_PUBLIC_FIREBASE_API_KEY) appears to be missing from your environment variables. Check your .env.local file."
       );
     }
   }
