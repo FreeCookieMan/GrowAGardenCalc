@@ -283,7 +283,7 @@ export default function ProfilePage() {
             <ShieldAlert className="h-5 w-5 text-primary" />
             <AlertTitle className="text-primary">Security Notice</AlertTitle>
             <AlertDescription>
-              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first. If issues persist, check your Firebase project settings.
+              Changing your email address is a sensitive operation. You will need to verify your new email address. If your current email is unverified, you must verify it first. If issues persist (e.g., 'operation-not-allowed' errors), please check your Firebase project's Authentication settings under 'User actions' as specific project policies might be affecting this.
             </AlertDescription>
           </Alert>
           <Form {...emailForm}>
@@ -324,7 +324,7 @@ export default function ProfilePage() {
             <ShieldAlert className="h-5 w-5 text-primary" />
             <AlertTitle className="text-primary">Security Notice</AlertTitle>
             <AlertDescription>
-              Changing your password is a sensitive operation and may require you to re-authenticate.
+              Changing your password is a sensitive operation and may require you to re-authenticate if you haven't logged in recently.
             </AlertDescription>
           </Alert>
           <Form {...passwordForm}>
@@ -395,7 +395,5 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
 
     
