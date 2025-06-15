@@ -70,11 +70,12 @@ export default function LoginPage() {
       toast({ title: "Google Sign-In Successful", description: "Welcome!" });
       router.push("/");
     } catch (error: any) {
-      console.error("Google Sign-In error", error);
+      console.error("Google Sign-In detailed error object:", error); 
+
       if (error.code === 'auth/popup-closed-by-user') {
         toast({
           title: "Google Sign-In Cancelled",
-          description: "You closed the Google Sign-In window before completing the process.",
+          description: "You closed the Google Sign-In window before completing the process, or it was closed unexpectedly.",
         });
       } else if (error.code === 'auth/popup-blocked') {
          toast({
@@ -87,6 +88,8 @@ export default function LoginPage() {
         let errorMessage = "An unexpected error occurred with Google Sign-In.";
         if (error.code === 'auth/account-exists-with-different-credential') {
           errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with a different method.";
+        } else if (error.message) {
+          errorMessage = error.message;
         }
         toast({
           title: "Google Sign-In Failed",
