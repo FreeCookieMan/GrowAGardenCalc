@@ -75,12 +75,18 @@ export default function LoginPage() {
       if (error.code === 'auth/popup-closed-by-user') {
         toast({
           title: "Google Sign-In Cancelled",
-          description: "You closed the Google Sign-In window before completing the process, or it was closed unexpectedly.",
+          description: "You closed the Google Sign-In window before completing the process, or it was closed unexpectedly. If this was unexpected, check for browser popup blockers or console errors.",
         });
       } else if (error.code === 'auth/popup-blocked') {
          toast({
           title: "Google Sign-In Failed",
           description: "Google Sign-In popup was blocked by the browser. Please allow popups for this site.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/unauthorized-domain') {
+         toast({
+          title: "Google Sign-In Failed",
+          description: "This domain is not authorized for Google Sign-In. Please contact the site administrator.",
           variant: "destructive",
         });
       }
