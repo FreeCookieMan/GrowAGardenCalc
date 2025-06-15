@@ -77,13 +77,13 @@ export default function ProfilePage() {
     if (user) {
       displayNameForm.reset({ displayName: user.displayName || "" });
     }
-  }, [user, user?.displayName, displayNameForm.reset]);
+  }, [user, user?.displayName, displayNameForm]);
 
   useEffect(() => {
     if (user) {
       emailForm.reset({ newEmail: user.email || "" });
     }
-  }, [user, user?.email, emailForm.reset]);
+  }, [user, user?.email, emailForm]);
 
   if (authLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading profile...</div>;
@@ -97,20 +97,30 @@ export default function ProfilePage() {
   const handleUpdateError = (error: any, action: string) => {
     console.error(`${action} error`, error);
     let errorMessage = `An unexpected error occurred while updating your ${action.toLowerCase()}.`;
-    if (error.code === "auth/requires-recent-login") {
-      errorMessage = "This operation is sensitive and requires recent authentication. Please log out and log back in, then try again.";
-    } else if (error.code === "auth/email-already-in-use") {
-      errorMessage = "This email address is already in use by another account.";
-    } else if (error.code === "auth/weak-password") {
-      errorMessage = "The new password is too weak.";
-    } else if (error.code === "auth/operation-not-allowed") {
-      if (action === "Email") {
-        errorMessage = `Could not update email. This might be because your current email is not verified, or due to project security settings preventing this change. Firebase error: ${error.message}`;
-      } else if (action === "Password") {
-         errorMessage = `Could not update password. This may be due to project security settings. Firebase error: ${error.message}`;
-      } else {
-        errorMessage = `This operation is not allowed. Firebase error: ${error.message}`;
-      }
+    switch (error.code) {
+      case "auth/requires-recent-login":
+        errorMessage = "This operation is sensitive and requires recent authentication. Please log out and log back in, then try again.";
+        break;
+      case "auth/email-already-in-use":
+        errorMessage = "This email address is already in use by another account.";
+        break;
+      case "auth/weak-password":
+        errorMessage = "The new password is too weak.";
+        break;
+      case "auth/network-request-failed":
+        errorMessage = "A network error occurred. Please check your internet connection and try again. If the problem persists, a firewall or browser extension might be blocking requests to Firebase.";
+        break;
+      case "auth/operation-not-allowed":
+        if (action === "Email") {
+          errorMessage = `Could not update email. This might be because your current email is not verified, or due to project security settings preventing this change. Firebase error: ${error.message}`;
+        } else if (action === "Password") {
+           errorMessage = `Could not update password. This may be due to project security settings. Firebase error: ${error.message}`;
+        } else {
+          errorMessage = `This operation is not allowed. Firebase error: ${error.message}`;
+        }
+        break;
+      default:
+        errorMessage = `An unexpected error occurred: ${error.message}. Please try again.`;
     }
     toast({
       title: `${action} Failed`,
