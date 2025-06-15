@@ -71,19 +71,24 @@ export default function LoginPage() {
       router.push("/");
     } catch (error: any) {
       console.error("Google Sign-In error", error);
-      let errorMessage = "An unexpected error occurred with Google Sign-In.";
       if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Google Sign-In cancelled.";
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with a different method.";
-      } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = "Google Sign-In popup was blocked by the browser. Please allow popups for this site.";
+        toast({
+          title: "Google Sign-In Cancelled",
+          description: "You closed the Google Sign-In window before completing the process.",
+        });
+      } else {
+        let errorMessage = "An unexpected error occurred with Google Sign-In.";
+        if (error.code === 'auth/account-exists-with-different-credential') {
+          errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with a different method.";
+        } else if (error.code === 'auth/popup-blocked') {
+          errorMessage = "Google Sign-In popup was blocked by the browser. Please allow popups for this site.";
+        }
+        toast({
+          title: "Google Sign-In Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
-      toast({
-        title: "Google Sign-In Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
     } finally {
       setIsGoogleLoading(false);
     }
